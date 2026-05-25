@@ -1,176 +1,98 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import Dropdown from '@/Components/Dropdown';
-import NavLink from '@/Components/NavLink';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
-
-    const [showingNavigationDropdown, setShowingNavigationDropdown] =
-        useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <nav className="border-b border-gray-100 bg-white">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="flex h-16 justify-between">
-                        <div className="flex">
-                            <div className="flex shrink-0 items-center">
-                                <Link href="/">
-                                    <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
-                                </Link>
-                            </div>
-
-                            <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                >
-                                    Dashboard
-                                </NavLink>
-                            </div>
-                        </div>
-
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
-                            <div className="relative ms-3">
-                                <Dropdown>
-                                    <Dropdown.Trigger>
-                                        <span className="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
-                                            >
-                                                {user.name}
-
-                                                <svg
-                                                    className="-me-0.5 ms-2 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clipRule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </Dropdown.Trigger>
-
-                                    <Dropdown.Content>
-                                        <Dropdown.Link
-                                            href={route('profile.edit')}
-                                        >
-                                            Profile
-                                        </Dropdown.Link>
-                                        <Dropdown.Link
-                                            href={route('logout')}
-                                            method="post"
-                                            as="button"
-                                        >
-                                            Log Out
-                                        </Dropdown.Link>
-                                    </Dropdown.Content>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <div className="-me-2 flex items-center sm:hidden">
-                            <button
-                                onClick={() =>
-                                    setShowingNavigationDropdown(
-                                        (previousState) => !previousState,
-                                    )
-                                }
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
-                            >
-                                <svg
-                                    className="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        className={
-                                            !showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        className={
-                                            showingNavigationDropdown
-                                                ? 'inline-flex'
-                                                : 'hidden'
-                                        }
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
+        <div className="flex h-screen bg-notion-bg text-notion-text overflow-hidden font-sans">
+            
+            {/* Sidebar para Escritorio */}
+            <aside className="hidden md:flex flex-col w-64 bg-notion-sidebar border-r border-notion-border">
+                {/* Cabecera Sidebar */}
+                <div className="p-5 flex items-center space-x-3">
+                    <Link href="/">
+                        <ApplicationLogo className="block h-8 w-auto fill-current text-notion-text" />
+                    </Link>
+                    <span className="font-semibold text-lg tracking-wide">Taller IA</span>
                 </div>
+                
+                {/* Navegación Principal */}
+                <nav className="flex-1 px-3 py-4 space-y-1">
+                    <Link 
+                        href={route('dashboard')} 
+                        className={`flex items-center px-3 py-2 rounded-md transition-colors ${route().current('dashboard') ? 'bg-notion-hover font-medium text-white' : 'text-notion-text hover:bg-notion-hover'}`}
+                    >
+                        Panel de Control
+                    </Link>
+                </nav>
 
-                <div
-                    className={
-                        (showingNavigationDropdown ? 'block' : 'hidden') +
-                        ' sm:hidden'
-                    }
+                {/* Perfil y Salida */}
+                <div className="p-4 border-t border-notion-border">
+                    <div className="mb-3 px-3">
+                        <p className="text-sm font-medium text-white">{user.name}</p>
+                        <p className="text-xs text-notion-textMuted">{user.email}</p>
+                    </div>
+                    <Link 
+                        href={route('profile.edit')} 
+                        className="block px-3 py-2 text-sm text-notion-text rounded-md hover:bg-notion-hover transition-colors"
+                    >
+                        Configuración
+                    </Link>
+                    <Link 
+                        href={route('logout')} 
+                        method="post" 
+                        as="button" 
+                        className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-notion-hover transition-colors text-red-400 hover:text-red-300"
+                    >
+                        Cerrar Sesión
+                    </Link>
+                </div>
+            </aside>
+
+            {/* Menú Móvil (Hamburguesa) */}
+            <div className="md:hidden fixed top-0 w-full bg-notion-sidebar border-b border-notion-border z-10 flex justify-between items-center p-4">
+                <span className="font-semibold text-white">Taller IA</span>
+                <button 
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+                    className="p-2 text-notion-text hover:bg-notion-hover rounded-md focus:outline-none"
                 >
-                    <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
-                    </div>
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
 
-                    <div className="border-t border-gray-200 pb-1 pt-4">
-                        <div className="px-4">
-                            <div className="text-base font-medium text-gray-800">
-                                {user.name}
-                            </div>
-                            <div className="text-sm font-medium text-gray-500">
-                                {user.email}
-                            </div>
+            {/* Overlay Menú Móvil */}
+            {isMobileMenuOpen && (
+                <div className="md:hidden fixed inset-0 bg-black bg-opacity-60 z-20 flex" onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="w-64 h-full bg-notion-sidebar p-4 flex flex-col shadow-xl" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-8">
+                            <span className="font-semibold text-lg text-white">Menú</span>
+                            <button onClick={() => setIsMobileMenuOpen(false)} className="text-notion-textMuted hover:text-white">✕</button>
                         </div>
-
-                        <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>
-                                Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                method="post"
-                                href={route('logout')}
-                                as="button"
-                            >
-                                Log Out
-                            </ResponsiveNavLink>
-                        </div>
+                        <nav className="flex-1 space-y-2">
+                            <Link href={route('dashboard')} className="block px-3 py-3 rounded-md text-white bg-notion-hover">Dashboard</Link>
+                            <Link href={route('profile.edit')} className="block px-3 py-3 rounded-md text-notion-text hover:bg-notion-hover">Perfil</Link>
+                            <Link href={route('logout')} method="post" as="button" className="w-full text-left px-3 py-3 rounded-md hover:bg-notion-hover text-red-400">Cerrar Sesión</Link>
+                        </nav>
                     </div>
                 </div>
-            </nav>
-
-            {header && (
-                <header className="bg-white shadow">
-                    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                        {header}
-                    </div>
-                </header>
             )}
 
-            <main>{children}</main>
+            {/* Contenido Principal */}
+            <div className="flex-1 flex flex-col overflow-y-auto w-full pt-16 md:pt-0 bg-notion-bg">
+                {header && (
+                    <header className="px-8 py-6 max-w-5xl mx-auto w-full">
+                        {header}
+                    </header>
+                )}
+                <main className="px-8 pb-12 max-w-5xl mx-auto w-full flex-1">
+                    {children}
+                </main>
+            </div>
         </div>
     );
 }

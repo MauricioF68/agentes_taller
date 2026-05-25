@@ -7,6 +7,8 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Domain\Groups\Models\Group;
+use App\Domain\Documents\Models\Document;
 
 class User extends Authenticatable
 {
@@ -22,6 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role', // Añadido para el control de accesos (docente/alumno)
     ];
 
     /**
@@ -45,5 +48,22 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // --- RELACIONES DEL DOMINIO ---
+
+    public function groupsAsTeacher()
+    {
+        return $this->hasMany(Group::class, 'teacher_id');
+    }
+
+    public function groupsAsStudent()
+    {
+        return $this->belongsToMany(Group::class, 'group_user', 'user_id', 'group_id');
+    }
+
+    public function uploadedDocuments()
+    {
+        return $this->hasMany(Document::class, 'uploaded_by');
     }
 }

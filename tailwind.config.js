@@ -13,8 +13,19 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Inter', 'Figtree', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                notion: {
+                    bg: '#191919',         // Fondo principal oscuro
+                    sidebar: '#202020',    // Fondo del menú lateral y tarjetas
+                    text: '#ebebeb',       // Texto claro principal
+                    textMuted: '#9ca3af',  // Texto secundario
+                    blue: '#2563eb',       // Acento azul vibrante
+                    border: '#2f2f2f',     // Bordes sutiles oscuros
+                    hover: '#2c2c2c'       // Hover de botones y enlaces
+                }
+            }
         },
     },
 
