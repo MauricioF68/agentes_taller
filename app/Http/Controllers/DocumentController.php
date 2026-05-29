@@ -13,15 +13,13 @@ class DocumentController extends Controller
      */
     public function store(Request $request, UploadDocumentUseCase $uploadDocumentUseCase)
     {
-        // Validación de entrada HTTP (Formatos: PDF, DOC, DOCX, TXT. Peso máximo: 10MB)
         $request->validate([
             'group_id' => 'required|exists:groups,id',
             'category_id' => 'required|exists:categories,id',
-            'file' => 'required|file|mimes:pdf,doc,docx,txt|max:20240', 
+            'file' => 'required|file|mimes:pdf,doc,docx,txt|max:20480', 
         ]);
 
         try {
-            // Ejecutamos el caso de uso
             $uploadDocumentUseCase->execute(
                 $request->file('file'),
                 $request->group_id,

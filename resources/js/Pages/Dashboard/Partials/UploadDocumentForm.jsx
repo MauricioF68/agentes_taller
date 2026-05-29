@@ -46,14 +46,16 @@ export default function UploadDocumentForm({ myGroup, categories }) {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-notion-text mb-1">Archivo (PDF, Word, TXT - Máx 10MB)</label>
+                    {/* Texto actualizado a 20MB */}
+                    <label className="block text-sm font-medium text-notion-text mb-1">Archivo (PDF, Word, TXT - Máx 20MB)</label>
                     <input
                         id="file-input"
                         type="file"
                         className="block w-full text-sm text-notion-textMuted file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-notion-blue file:text-white hover:file:bg-blue-600 cursor-pointer"
                         onChange={(e) => setData('file', e.target.files[0])}
                         required
-                        accept=".pdf,.doc,.docx,.txt"
+                        // Atributo accept actualizado para permitir los formatos correctos
+                        accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
                     />
                     {errors.file && <div className="text-red-500 text-sm mt-1">{errors.file}</div>}
                 </div>
