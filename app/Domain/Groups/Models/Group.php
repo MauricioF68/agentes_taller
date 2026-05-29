@@ -24,9 +24,21 @@ class Group extends Model
         return $this->belongsToMany(User::class, 'group_user', 'group_id', 'user_id');
     }
 
+    // Historial completo (No lo borramos)
     public function documents()
     {
         return $this->hasMany(Document::class, 'group_id');
+    }
+
+    // NUEVA RELACIÓN: Solo el documento más reciente por categoría
+    public function latestDocuments()
+    {
+        return $this->hasMany(Document::class, 'group_id')
+            ->whereIn('id', function ($query) {
+                $query->selectRaw('MAX(id)')
+                      ->from('documents')
+                      ->groupBy('group_id', 'category_id');
+            });
     }
 
     public function evaluation()

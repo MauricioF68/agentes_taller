@@ -10,10 +10,11 @@ class Document extends Model
 {
     protected $fillable = [
         'group_id', 
+        'category_id',
         'uploaded_by', 
         'original_name', 
         'file_path', 
-        'category'
+        'status_ai'   
     ];
 
     public function group()
@@ -24,5 +25,11 @@ class Document extends Model
     public function uploader()
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    // NUEVA RELACIÓN
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
     }
 }

@@ -3,7 +3,7 @@ import { Head, usePage } from '@inertiajs/react';
 import TeacherView from './Dashboard/TeacherView.jsx'; 
 import StudentView from './Dashboard/StudentView.jsx'; 
 
-export default function Dashboard({ auth, role, teacherGroups, myGroup, availableGroups }) {
+export default function Dashboard({ auth, role, teacherGroups, myGroup, availableGroups, categories}) {
     // Extraemos los mensajes flash (éxito/error) desde las props compartidas de Laravel
     const { flash } = usePage().props;
 
@@ -31,11 +31,11 @@ export default function Dashboard({ auth, role, teacherGroups, myGroup, availabl
 
                     {/* Renderizado Condicional por Roles */}
                     {role === 'docente' && (
-                        <TeacherView groups={teacherGroups} />
+                        <TeacherView groups={teacherGroups} categories={categories} />
                     )}
                     
                     {role === 'alumno' && (
-                        <StudentView myGroup={myGroup} availableGroups={availableGroups} />
+                        <StudentView myGroup={myGroup} availableGroups={availableGroups} categories={categories} />
                     )}
                     
                     {!role && (

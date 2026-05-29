@@ -5,6 +5,8 @@ namespace App\Domain\Documents\UseCases;
 use App\Models\User;
 use App\Domain\Groups\Models\Group;
 use App\Domain\Documents\Models\Document;
+use App\Domain\Documents\Models\Category;
+use App\Jobs\IngestDocumentToVectorDB;
 use Illuminate\Http\UploadedFile;
 use Exception;
 
@@ -16,11 +18,11 @@ class UploadDocumentUseCase
      * @param UploadedFile $file
      * @param int $groupId
      * @param int $userId
-     * @param string $category
+     * @param int $categoryId  // Cambiado de string $category a int $categoryId
      * @return Document
      * @throws Exception
      */
-    public function execute(UploadedFile $file, int $groupId, int $userId, string $category): Document
+    public function execute(UploadedFile $file, int $groupId, int $userId, int $categoryId): Document
     {
         $user = User::find($userId);
 
@@ -36,19 +38,30 @@ class UploadDocumentUseCase
             throw new Exception("Operación denegada: No perteneces a este grupo.");
         }
 
+        // Regla de Negocio Adicional: Validar que la categoría exista en la base de datos
+        $category = Category::find($categoryId);
+        if (!$category) {
+            throw new Exception("Operación denegada: La categoría de entregable especificada no es válida.");
+        }
+
         // Obtener el nombre original del archivo
         $originalName = $file->getClientOriginalName();
 
         // Guardar el archivo físicamente en storage/app/public/documents
         $filePath = $file->store('documents', 'public');
 
-        // Registrar la metadata en la base de datos respetando los atributos
-        return Document::create([
+        // Registrar la metadata en la base de datos respetando la nueva estructura
+        $document = Document::create([
             'group_id' => $groupId,
+            'category_id' => $categoryId, 
             'uploaded_by' => $userId,
             'original_name' => $originalName,
             'file_path' => $filePath,
-            'category' => $category
+            'status_ai' => 'pending'       
         ]);
+
+        IngestDocumentToVectorDB::dispatch($document);
+
+        return $document;
     }
 }

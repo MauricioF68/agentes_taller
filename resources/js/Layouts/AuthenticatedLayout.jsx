@@ -27,6 +27,13 @@ export default function AuthenticatedLayout({ header, children }) {
                     >
                         Panel de Control
                     </Link>
+                    {/* NUEVO ENLACE: GESTIÓN DE GRUPOS */}
+                    <Link 
+                        href={route('groups.index')} 
+                        className={`flex items-center px-3 py-2 rounded-md transition-colors ${route().current('groups.*') ? 'bg-notion-hover font-medium text-white' : 'text-notion-text hover:bg-notion-hover'}`}
+                    >
+                        Gestión de Grupos
+                    </Link>
                 </nav>
 
                 {/* Perfil y Salida */}
@@ -74,7 +81,10 @@ export default function AuthenticatedLayout({ header, children }) {
                             <button onClick={() => setIsMobileMenuOpen(false)} className="text-notion-textMuted hover:text-white">✕</button>
                         </div>
                         <nav className="flex-1 space-y-2">
-                            <Link href={route('dashboard')} className="block px-3 py-3 rounded-md text-white bg-notion-hover">Dashboard</Link>
+                            <Link href={route('dashboard')} className={`block px-3 py-3 rounded-md text-white ${route().current('dashboard') ? 'bg-notion-hover' : 'hover:bg-notion-hover'}`}>Dashboard</Link>
+                            {/* NUEVO ENLACE MÓVIL */}
+                            <Link href={route('groups.index')} className={`block px-3 py-3 rounded-md text-white ${route().current('groups.*') ? 'bg-notion-hover' : 'hover:bg-notion-hover'}`}>Gestión de Grupos</Link>
+                            
                             <Link href={route('profile.edit')} className="block px-3 py-3 rounded-md text-notion-text hover:bg-notion-hover">Perfil</Link>
                             <Link href={route('logout')} method="post" as="button" className="w-full text-left px-3 py-3 rounded-md hover:bg-notion-hover text-red-400">Cerrar Sesión</Link>
                         </nav>

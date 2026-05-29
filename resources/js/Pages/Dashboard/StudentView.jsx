@@ -1,82 +1,63 @@
-import { useForm } from '@inertiajs/react';
+import { useState, useEffect } from 'react';
+import { Link } from '@inertiajs/react'; // NUEVO: Importamos Link para la redirección limpia
+import UploadDocumentForm from './Partials/UploadDocumentForm';
+import DocumentList from './Partials/DocumentList';
 import NotionCard from '@/Components/NotionCard';
-import NotionButton from '@/Components/NotionButton';
 import StatusBadge from '@/Components/StatusBadge';
 
-export default function StudentView({ myGroup, availableGroups }) {
-    const { data: joinData, setData: setJoinData, post: postJoin, processing: processingJoin, errors: errorsJoin } = useForm({
-        group_id: '',
-    });
+export default function StudentView({ myGroup, availableGroups, categories }) {
+    // Estado local para reaccionar a Pusher
+    const [documents, setDocuments] = useState(myGroup?.documents || []);
 
-    const { data: docData, setData: setDocData, post: postDoc, processing: processingDoc, errors: errorsDoc, reset: resetDoc } = useForm({
-        group_id: myGroup ? myGroup.id : '',
-        category: 'project_charter',
-        file: null,
-    });
+    // Sincronizar si Inertia recarga la página por completo
+    useEffect(() => {
+        if (myGroup?.documents) {
+            setDocuments(myGroup.documents);
+        }
+    }, [myGroup?.documents]);
 
-    const submitJoin = (e) => {
-        e.preventDefault();
-        postJoin(route('groups.join'));
-    };
+    // Escucha en tiempo real de Pusher
+    useEffect(() => {
+        if (!myGroup?.id) return;
 
-    const submitDoc = (e) => {
-        e.preventDefault();
-        postDoc(route('documents.store'), {
-            onSuccess: () => resetDoc('file'),
-        });
-    };
+        console.log(`📡 Conectando al canal: group-channel.${myGroup.id}`);
 
-    // Función auxiliar para renderizar cada categoría de forma separada
-    const renderCategorySection = (title, categoryKey) => {
-        const docs = myGroup.documents?.filter(doc => doc.category === categoryKey) || [];
+        const channel = window.Echo.channel(`group-channel.${myGroup.id}`)
+            .listen('.document.status.updated', (event) => {
+                console.log('⚡ ¡Evento de IA recibido!', event);
+                setDocuments((prevDocs) =>
+                    prevDocs.map((doc) =>
+                        doc.id === event.documentId
+                            ? { ...doc, status_ai: event.statusAi }
+                            : doc
+                    )
+                );
+            });
 
-        return (
-            <div className="mb-6 last:mb-0">
-                <h4 className="font-semibold text-sm text-notion-text border-b border-notion-border pb-2 mb-3">
-                    {title}
-                </h4>
-                {docs.length > 0 ? (
-                    <div className="space-y-2">
-                        {docs.map((doc) => (
-                            <div key={doc.id} className="border border-notion-border rounded-md p-3 flex justify-between items-center bg-notion-bg transition-colors hover:bg-notion-hover">
-                                <span className="font-medium text-sm text-notion-text">{doc.original_name}</span>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-xs text-notion-textMuted italic">Aún no se han subido archivos aquí.</p>
-                )}
-            </div>
-        );
-    };
+        return () => {
+            window.Echo.leaveChannel(`group-channel.${myGroup.id}`);
+        };
+    }, [myGroup?.id]);
 
+    // Renderizado Condicional de resiliencia UX:
+    // Si el alumno no tiene grupo, ya no cargamos JoinGroupForm aquí (evitando errores)
+    // En su lugar, lo guiamos con un enlace limpio a la nueva pestaña de Gestión de Grupos.
     if (!myGroup) {
         return (
             <NotionCard>
-                <h3 className="text-lg font-medium text-notion-text mb-4">Unirse a un Grupo</h3>
-                <p className="text-sm text-notion-textMuted mb-6">Selecciona el grupo al que perteneces. Recuerda que esta acción es irreversible y el límite es de 5 integrantes.</p>
-                
-                <form onSubmit={submitJoin} className="flex gap-4 items-start max-w-xl">
-                    <div className="flex-1">
-                        <select
-                            className="bg-notion-bg border-notion-border text-notion-text focus:border-notion-blue focus:ring-1 focus:ring-notion-blue rounded-md shadow-sm w-full"
-                            value={joinData.group_id}
-                            onChange={(e) => setJoinData('group_id', e.target.value)}
-                            required
-                        >
-                            <option value="" disabled>Selecciona un grupo...</option>
-                            {availableGroups && availableGroups.map((group) => (
-                                <option key={group.id} value={group.id}>
-                                    {group.name} (Docente: {group.teacher?.name})
-                                </option>
-                            ))}
-                        </select>
-                        {errorsJoin.group_id && <div className="text-red-500 text-sm mt-1">{errorsJoin.group_id}</div>}
-                    </div>
-                    <NotionButton variant="primary" type="submit" disabled={processingJoin || !joinData.group_id}>
-                        Unirme
-                    </NotionButton>
-                </form>
+                <div className="text-center py-8">
+                    <div className="text-4xl mb-3">⚠️</div>
+                    <h3 className="text-lg font-medium text-notion-text mb-2">Aún no tienes un grupo asignado</h3>
+                    <p className="text-sm text-gray-500 mb-6 max-w-md mx-auto">
+                        Para poder subir documentos y utilizar las bondades del Asistente de Auditoría de Inteligencia Artificial, primero debes unirte o crear un equipo de trabajo.
+                    </p>
+                    <Link 
+                        href={route('groups.index')} 
+                        className="inline-flex items-center px-4 py-2 bg-notion-blue border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-600 transition shadow-sm"
+                    >
+                        Ir a Gestión de Grupos
+                    </Link>
+                </div>
             </NotionCard>
         );
     }
@@ -88,53 +69,14 @@ export default function StudentView({ myGroup, availableGroups }) {
                     <h3 className="text-lg font-medium text-notion-text">Mi Grupo: {myGroup.name}</h3>
                     <StatusBadge status="alumno" />
                 </div>
-                
                 <hr className="border-notion-border mb-4" />
                 
-                <h4 className="font-medium text-notion-text mb-3">Subir Documentación</h4>
-                <form onSubmit={submitDoc} className="space-y-4 max-w-xl">
-                    <div>
-                        <label className="block text-sm font-medium text-notion-text mb-1">Categoría</label>
-                        <select
-                            className="bg-notion-bg border-notion-border text-notion-text focus:border-notion-blue focus:ring-1 focus:ring-notion-blue rounded-md shadow-sm w-full"
-                            value={docData.category}
-                            onChange={(e) => setDocData('category', e.target.value)}
-                            required
-                        >
-                            <option value="project_charter">Project Charter</option>
-                            <option value="presentacion_avances">Presentación de Avances</option>
-                            <option value="ceremonias_acuerdos">Ceremonias y Acuerdos</option>
-                        </select>
-                        {errorsDoc.category && <div className="text-red-500 text-sm mt-1">{errorsDoc.category}</div>}
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-notion-text mb-1">Archivo (PDF, Word, TXT - Máx 10MB)</label>
-                        <input
-                            type="file"
-                            className="block w-full text-sm text-notion-textMuted file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-notion-blue file:text-white hover:file:bg-blue-600 cursor-pointer"
-                            onChange={(e) => setDocData('file', e.target.files[0])}
-                            required
-                            accept=".pdf,.doc,.docx,.txt"
-                        />
-                        {errorsDoc.file && <div className="text-red-500 text-sm mt-1">{errorsDoc.file}</div>}
-                    </div>
-
-                    <NotionButton variant="primary" type="submit" disabled={processingDoc || !docData.file}>
-                        Subir Documento
-                    </NotionButton>
-                </form>
+                {/* Hijo: Formulario de subida */}
+                <UploadDocumentForm myGroup={myGroup} categories={categories} />
             </NotionCard>
 
-            <NotionCard>
-                <h3 className="text-lg font-medium text-notion-text mb-6">Documentos Subidos</h3>
-                
-                {/* Categorías divididas lógicamente */}
-                {renderCategorySection('Project Charter', 'project_charter')}
-                {renderCategorySection('Presentación de Avances', 'presentacion_avances')}
-                {renderCategorySection('Ceremonias y Acuerdos', 'ceremonias_acuerdos')}
-                
-            </NotionCard>
+            {/* Hijo: Lista de documentos */}
+            <DocumentList documents={documents} categories={categories} />
         </div>
     );
 }

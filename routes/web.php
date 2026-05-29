@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EvaluationController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -28,10 +29,16 @@ Route::middleware('auth')->group(function () {
 
 
     // --- RUTAS DE NUESTRO DOMINIO: GRUPOS ---
+    Route::get('/groups', [GroupController::class, 'index'])->name('groups.index'); 
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
     Route::post('/groups/join', [GroupController::class, 'join'])->name('groups.join');
+    
+    // --- RUTAS DE NUESTRO DOMINIO: DOCUMENTOS ---
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store'); // <-- ¡AQUÍ ESTÁ LA RUTA PERDIDA!
 
-    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+    // --- RUTAS DE EVALUACIÓN Y AGENTE IA ---
+    Route::post('/groups/evaluate', [\App\Http\Controllers\EvaluationController::class, 'evaluate'])->name('groups.evaluate');
+    Route::post('/agent/chat', [\App\Http\Controllers\EvaluationController::class, 'chat'])->name('agent.chat');
 });
 
 require __DIR__.'/auth.php';

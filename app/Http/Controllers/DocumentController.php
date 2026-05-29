@@ -16,8 +16,8 @@ class DocumentController extends Controller
         // Validación de entrada HTTP (Formatos: PDF, DOC, DOCX, TXT. Peso máximo: 10MB)
         $request->validate([
             'group_id' => 'required|exists:groups,id',
-            'category' => 'required|in:project_charter,presentacion_avances,ceremonias_acuerdos',
-            'file' => 'required|file|mimes:pdf,doc,docx,txt|max:10240', 
+            'category_id' => 'required|exists:categories,id',
+            'file' => 'required|file|mimes:pdf,doc,docx,txt|max:20240', 
         ]);
 
         try {
@@ -26,7 +26,7 @@ class DocumentController extends Controller
                 $request->file('file'),
                 $request->group_id,
                 auth()->id(),
-                $request->category
+                $request->category_id
             );
             
             return back()->with('success', 'Documento subido y registrado exitosamente.');

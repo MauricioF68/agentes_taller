@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use App\Domain\Groups\UseCases\CreateGroupUseCase;
 use App\Domain\Groups\UseCases\JoinGroupUseCase;
+use App\Domain\Groups\Models\Group;
 use Exception;
 
 class GroupController extends Controller
@@ -12,6 +14,33 @@ class GroupController extends Controller
     /**
      * Almacena un nuevo grupo creado por un docente.
      */
+    public function index(Request $request)
+    {
+        $user = $request->user();
+
+        // Si es Docente: Le enviamos los grupos que ha creado.
+        if ($user->role === 'docente') {
+            $groups = $user->groupsAsTeacher()->with('students')->get();
+            return Inertia::render('Groups/TeacherGroups', [
+                'groups' => $groups
+            ]);
+        }
+
+        // Si es Alumno: Le enviamos su grupo actual y los disponibles para unirse.
+        if ($user->role === 'alumno') {
+            $myGroup = $user->groupsAsStudent()->first();
+            $availableGroups = Group::with('teacher')->get(); 
+            
+            return Inertia::render('Groups/StudentGroups', [
+                'myGroup' => $myGroup,
+                'availableGroups' => $availableGroups
+            ]);
+        }
+
+        return redirect()->route('dashboard');
+    }
+
+
     public function store(Request $request, CreateGroupUseCase $createGroupUseCase)
     {
         // Validación básica de entrada HTTP
