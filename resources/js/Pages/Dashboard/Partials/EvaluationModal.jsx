@@ -37,10 +37,10 @@ export default function EvaluationModal({
                     </button>
                 </div>
 
-                {/* Cuerpo dividido en 2 columnas */}
+               
                 <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
                     
-                    {/* Columna Izquierda: Selector de Grupos */}
+                    
                     <div className="w-full md:w-1/3 border-r border-gray-100 p-4 overflow-y-auto bg-gray-50/50">
                         <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">Equipos Asignados</h4>
                         <div className="space-y-2">
