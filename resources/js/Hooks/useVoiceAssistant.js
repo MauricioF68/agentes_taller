@@ -1,4 +1,6 @@
+// resources/js/Hooks/useVoiceAssistant.js
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { VoiceBrain } from '@/Utils/VoiceBrain';
 
 export default function useVoiceAssistant({ groups, categories, onQuestionCaptured }) {
     const [status, setStatus] = useState('OFF'); 
@@ -12,9 +14,6 @@ export default function useVoiceAssistant({ groups, categories, onQuestionCaptur
     
     const activeGroupRef = useRef(null);
     const activeCategoryRef = useRef(null);
-    
-    // Nueva variable de memoria para la tolerancia a fallos
-    const failedDocAttemptsRef = useRef(0);
     const timeoutRef = useRef(null);
 
     useEffect(() => {
@@ -31,8 +30,8 @@ export default function useVoiceAssistant({ groups, categories, onQuestionCaptur
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => {
             if (statusRef.current !== 'OFF') {
-                console.log('⏰ [TIMEOUT] 60 segundos sin actividad. Apagando sistema...');
-                speak("Sistema apagado por inactividad.", 'OFF');
+                console.log('⏰ [TIMEOUT] Inactividad detectada. Durmiendo micrófono...');
+                speak("Sistema en reposo por inactividad.", 'SLEEPING');
             }
         }, 60000); 
     }, []);
@@ -76,29 +75,25 @@ export default function useVoiceAssistant({ groups, categories, onQuestionCaptur
             recognition.lang = 'es-ES';
             recognition.interimResults = false;
 
-            recognition.onstart = () => {
-                resetInactivityTimer();
-            };
+            recognition.onstart = () => resetInactivityTimer();
             
             recognition.onresult = (event) => {
-                const currentTranscript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+                const currentTranscript = event.results[event.results.length - 1][0].transcript.trim();
                 const currentStatus = statusRef.current; 
                 
                 console.log(`👂 [MIC] Captura: "${currentTranscript}" | Estado: ${currentStatus}`);
                 setTranscript(currentTranscript);
                 resetInactivityTimer(); 
                 
-                // COMANDO UNIVERSAL: APÁGATE
-                if (currentTranscript.includes('apágate') || currentTranscript.includes('apagate')) {
+                if (currentTranscript.toLowerCase().includes('apágate') || currentTranscript.toLowerCase().includes('apagate')) {
                     activeGroupRef.current = null;
                     activeCategoryRef.current = null;
-                    failedDocAttemptsRef.current = 0;
                     speak('Sistema apagado.', 'OFF');
                     return;
                 }
                 
                 if (currentStatus === 'SLEEPING') {
-                    if (currentTranscript.includes('sistema')) {
+                    if (currentTranscript.toLowerCase().includes('sistema')) {
                         startConversation();
                     }
                 } else if (currentStatus.startsWith('WAITING') || currentStatus.startsWith('CONFIRMING')) {
@@ -106,15 +101,11 @@ export default function useVoiceAssistant({ groups, categories, onQuestionCaptur
                 }
             };
 
-            recognition.onerror = (event) => {
-                if (event.error === 'not-allowed') {
-                    updateStatus('OFF');
-                    setAssistantMessage("Permiso de micrófono denegado.");
-                }
-            };
+            recognition.onerror = () => {};
 
             recognition.onend = () => {
-                if (statusRef.current === 'SLEEPING' || statusRef.current.startsWith('WAITING') || statusRef.current.startsWith('CONFIRMING')) {
+                const s = statusRef.current;
+                if (s === 'SLEEPING' || s.startsWith('WAITING') || s === 'CONFIRMING_GROUP') {
                     try { recognition.start(); } catch (e) {}
                 }
             };
@@ -128,20 +119,17 @@ export default function useVoiceAssistant({ groups, categories, onQuestionCaptur
         };
     }, [speak, updateStatus, resetInactivityTimer]); 
 
-    // --------------------------------------------------------
-    // ÁRBOL LÓGICO CONVERSACIONAL (Refactorizado)
-    // --------------------------------------------------------
     const startConversation = () => {
         updateStatus('WAKING_UP');
         window.speechSynthesis.cancel(); 
         speak("Hola. Estoy lista, ¿qué grupo vamos a auditar?", 'WAITING_GROUP');
     };
 
-    const processVoiceInput = (lowerText, currentStatus) => {
+    const processVoiceInput = (rawText, currentStatus) => {
         
         // FASE 1: BÚSQUEDA DE GRUPO
         if (currentStatus === 'WAITING_GROUP') {
-            const foundGroup = groupsRef.current.find(g => lowerText.includes(g.name.toLowerCase()));
+            const foundGroup = groupsRef.current.find(g => VoiceBrain.normalize(rawText).includes(VoiceBrain.normalize(g.name)));
             if (foundGroup) {
                 activeGroupRef.current = foundGroup;
                 speak(`Seleccioné ${foundGroup.name}. ¿Está bien o prefieres cambiar de grupo?`, 'CONFIRMING_GROUP');
@@ -152,71 +140,63 @@ export default function useVoiceAssistant({ groups, categories, onQuestionCaptur
         
         // FASE 1.5: CONFIRMACIÓN DE GRUPO
         else if (currentStatus === 'CONFIRMING_GROUP') {
-            // Si el usuario quiere cambiar
-            if (lowerText.includes('cambiar') || lowerText.includes('no') || lowerText.includes('otro')) {
-                // ¿Mencionó el grupo nuevo en la misma frase? (Ej: "No, cambiar al grupo 2")
-                const foundGroup = groupsRef.current.find(g => lowerText.includes(g.name.toLowerCase()));
-                if (foundGroup) {
-                    activeGroupRef.current = foundGroup;
-                    speak(`Entendido, cambié a ${foundGroup.name}. ¿Continuamos con este?`, 'CONFIRMING_GROUP');
-                } else {
-                    speak("De acuerdo. ¿A qué grupo quieres cambiar?", 'WAITING_GROUP');
-                }
+            if (VoiceBrain.isNegativeOrChange(rawText)) {
+                activeGroupRef.current = null;
+                speak("De acuerdo. ¿A qué grupo quieres cambiar?", 'WAITING_GROUP');
             } 
-            // Si el usuario acepta
-            else if (lowerText.includes('sí') || lowerText.includes('si') || lowerText.includes('bien') || lowerText.includes('ok') || lowerText.includes('correcto') || lowerText.includes('avanza')) {
-                failedDocAttemptsRef.current = 0; // Reiniciamos fallos
+            else if (VoiceBrain.isAffirmative(rawText)) {
                 speak("Perfecto. ¿Qué entregable revisamos?", 'WAITING_CATEGORY');
             } else {
-                speak("No te entendí bien. ¿Continuamos con este grupo o cambiamos?", 'CONFIRMING_GROUP');
+                speak("No te entendí bien. ¿Continuamos con este grupo o prefieres cambiar?", 'CONFIRMING_GROUP');
             }
         }
 
-        // FASE 2: BÚSQUEDA DE DOCUMENTO
+        // FASE 2: SELECCIÓN DE CATEGORÍA (CON MATCH PARCIAL)
         else if (currentStatus === 'WAITING_CATEGORY') {
-            // Escape Hatch: Cambiar de grupo en medio del proceso
-            if (lowerText.includes('cambiar de grupo') || lowerText.includes('otro grupo')) {
-                // ¿Mencionó el grupo?
-                const foundGroup = groupsRef.current.find(g => lowerText.includes(g.name.toLowerCase()));
-                if (foundGroup) {
-                    activeGroupRef.current = foundGroup;
-                    speak(`Entendido, saltamos a ${foundGroup.name}. ¿Qué documento revisamos de este equipo?`, 'WAITING_CATEGORY');
-                } else {
-                    speak("De acuerdo, abortando búsqueda de documento. ¿A qué grupo cambiamos?", 'WAITING_GROUP');
-                }
+            if (VoiceBrain.isChangeGroup(rawText)) {
+                activeGroupRef.current = null;
+                speak("Cambiando de equipo. ¿A qué grupo pasamos?", 'WAITING_GROUP');
                 return;
             }
 
-            const foundCategory = categoriesRef.current.find(c => lowerText.includes(c.name.toLowerCase()));
+            if (VoiceBrain.isHelp(rawText)) {
+                const helpText = VoiceBrain.generateCategoryHelpText(categoriesRef.current);
+                speak(helpText, 'WAITING_CATEGORY');
+                return;
+            }
+
+            // Aplicamos coincidencia parcial inteligente
+            const foundCategory = VoiceBrain.findPartialCategory(rawText, categoriesRef.current);
             
             if (foundCategory) {
-                // VALIDACIÓN CRÍTICA: ¿El alumno subió el archivo?
                 const hasDocument = activeGroupRef.current?.documents?.some(d => d.category_id === foundCategory.id);
                 
                 if (hasDocument) {
                     activeCategoryRef.current = foundCategory;
-                    failedDocAttemptsRef.current = 0; 
                     speak(`Excelente. Abriendo ${foundCategory.name}. ¿Cuál es tu consulta para la auditoría?`, 'WAITING_QUESTION');
                 } else {
-                    failedDocAttemptsRef.current += 1;
-                    let msg = `El equipo no ha subido el documento de ${foundCategory.name}. Por favor, busca otro entregable.`;
-                    if (failedDocAttemptsRef.current >= 2) {
-                        msg += " Si lo prefieres, dime 'Cambiar de grupo'.";
-                    }
-                    speak(msg, 'WAITING_CATEGORY');
+                    speak(`El equipo no tiene un archivo en ${foundCategory.name}. Elige otra categoría o di 'ver opciones'.`, 'WAITING_CATEGORY');
                 }
             } else {
-                failedDocAttemptsRef.current += 1;
-                let msg = "No encontré esa categoría de documento.";
-                if (failedDocAttemptsRef.current >= 2) {
-                    msg += " Recuerda que puedes decir 'Cambiar de grupo' para evaluar a otro equipo.";
-                }
-                speak(msg, 'WAITING_CATEGORY');
+                speak("No entendí la categoría. Puedes decir 'listar' para ayudarte.", 'WAITING_CATEGORY');
             }
         }
 
-        // FASE 3: PREGUNTA (RAG)
+        // FASE 3: CAPTURA DE PREGUNTA DIRECTA
         else if (currentStatus === 'WAITING_QUESTION') {
+            if (VoiceBrain.isChangeCategory(rawText)) {
+                activeCategoryRef.current = null;
+                speak("Cambiando entregable. ¿Cuál revisamos ahora?", 'WAITING_CATEGORY');
+                return;
+            }
+            if (VoiceBrain.isChangeGroup(rawText)) {
+                activeGroupRef.current = null;
+                activeCategoryRef.current = null;
+                speak("Cambiando de grupo. ¿Qué número de equipo auditamos?", 'WAITING_GROUP');
+                return;
+            }
+
+            // Es una pregunta real para el RAG
             updateStatus('PROCESSING');
             setAssistantMessage("Consultando base de datos vectorial...");
             try { recognitionRef.current?.stop(); } catch(e) {} 
@@ -225,13 +205,51 @@ export default function useVoiceAssistant({ groups, categories, onQuestionCaptur
             onQuestionCaptured(
                 activeGroupRef.current, 
                 activeCategoryRef.current, 
-                lowerText, 
-                () => {
-                    updateStatus('SLEEPING'); 
-                    try { recognitionRef.current?.start(); } catch(e) {}
-                    resetInactivityTimer();
+                rawText, 
+                (nextStatus = 'WAITING_NEXT_ACTION') => { 
+                    updateStatus(nextStatus); 
+                    if (nextStatus !== 'OFF') {
+                        try { recognitionRef.current?.start(); } catch(e) {}
+                        resetInactivityTimer();
+                    }
                 }
             ); 
+        }
+
+        // FASE 4: BUCLE FLUIDO POST-RAG (La gran mejora)
+        else if (currentStatus === 'WAITING_NEXT_ACTION') {
+            if (VoiceBrain.isChangeGroup(rawText)) {
+                activeGroupRef.current = null;
+                activeCategoryRef.current = null;
+                speak("Entendido. ¿Qué grupo pasamos a auditar?", 'WAITING_GROUP');
+            }
+            else if (VoiceBrain.isChangeCategory(rawText)) {
+                activeCategoryRef.current = null;
+                speak("Perfecto. ¿Qué entregable revisamos ahora?", 'WAITING_CATEGORY');
+            }
+            else {
+                // ¡MÁGICA RETENCIÓN DIRECTA! Si el usuario no pidió cambiar de grupo ni de archivo,
+                // procesamos sus palabras directamente como una nueva PREGUNTA sobre el mismo archivo.
+                console.log("🔥 Ejecutando consulta directa en bucle fluido:", rawText);
+                
+                updateStatus('PROCESSING');
+                setAssistantMessage("Procesando consulta continua...");
+                try { recognitionRef.current?.stop(); } catch(e) {}
+                if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+                onQuestionCaptured(
+                    activeGroupRef.current,
+                    activeCategoryRef.current,
+                    rawText, // El texto hablado es la pregunta inmediata
+                    (nextStatus = 'WAITING_NEXT_ACTION') => {
+                        updateStatus(nextStatus);
+                        if (nextStatus !== 'OFF') {
+                            try { recognitionRef.current?.start(); } catch(e) {}
+                            resetInactivityTimer();
+                        }
+                    }
+                );
+            }
         }
     };
 
@@ -250,10 +268,5 @@ export default function useVoiceAssistant({ groups, categories, onQuestionCaptur
         }
     };
 
-    return {
-        status,
-        transcript,
-        assistantMessage,
-        toggleMicrophone
-    };
+    return { status, transcript, assistantMessage, toggleMicrophone };
 }

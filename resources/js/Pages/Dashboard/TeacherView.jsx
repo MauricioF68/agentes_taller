@@ -41,6 +41,7 @@ export default function TeacherView({ groups, categories }) {
         setAiAnswer(null);
 
         try {
+            // Petición a tu API de Laravel conectada con Python
             const response = await axios.post(route('agent.chat'), {
                 group_id: foundGroup.id, 
                 category_slug: foundCategory.slug,
@@ -50,9 +51,19 @@ export default function TeacherView({ groups, categories }) {
             const reply = response.data.reply;
             setAiAnswer(reply);
 
-            let fraseVoz = reply.includes("No encontré") 
-                ? "Lo siento, no encontré esa información en el documento." 
-                : "Análisis completado. He mostrado la evidencia en la pantalla.";
+            // Filtros semánticos de control de fallos en base a lo que dicta Gemini
+            const failedPhrases = ["no encontre", "no dispongo", "no incluye", "no hay informacion", "no describe"];
+            const isFailure = failedPhrases.some(phrase => reply.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(phrase));
+
+            let fraseVoz = "";
+            // Obligamos al orquestador a mantenerse en modo escucha continua
+            let nextStatus = 'WAITING_NEXT_ACTION'; 
+
+            if (isFailure) {
+                fraseVoz = "Esa información no está explícita en el archivo. ¿Qué otra cosa deseas buscar, o prefieres cambiar de entregable?";
+            } else {
+                fraseVoz = "He mostrado la evidencia en la pantalla. Te escucho, ¿cuál es tu siguiente consulta o cambiamos de archivo?";
+            }
 
             const utterance = new SpeechSynthesisUtterance(fraseVoz);
             utterance.lang = 'es-ES';
@@ -62,14 +73,17 @@ export default function TeacherView({ groups, categories }) {
             if (betterVoice) utterance.voice = betterVoice;
 
             utterance.onend = () => {
-                if (onRAGComplete) onRAGComplete(); 
+                // Al terminar el habla, devolvemos el flujo al asistente en el estado WAITING_NEXT_ACTION
+                if (onRAGComplete) onRAGComplete(nextStatus); 
             };
+            
             window.speechSynthesis.speak(utterance);
 
         } catch (error) {
             console.error("Error consultando a la IA:", error);
             setAiAnswer("⚠️ Ocurrió un error al consultar el motor RAG.");
-            if (onRAGComplete) onRAGComplete();
+            // En caso de caída de red, el micrófono se resguarda en reposo seguro
+            if (onRAGComplete) onRAGComplete('SLEEPING'); 
         } finally {
             setLoadingRAG(false);
         }
