@@ -20,10 +20,14 @@ class ChatWithAgentUseCase
             return "Hola profesor. Estoy conectado a ChromaDB y listo para analizar los documentos de este grupo. ¿Qué desea saber sobre los entregables?";
         }
 
-        // Si no es la palabra clave, enviamos la pregunta al motor de IA en Python
+        // --- SOLUCIÓN: Usar la variable de entorno ---
+        $pythonBaseUrl = env('PYTHON_API_URL', 'http://127.0.0.1:8000');
+        $pythonEndpoint = rtrim($pythonBaseUrl, '/') . '/search/';
+
+        // Enviamos la pregunta al motor de IA en Python
         $response = Http::timeout(60)
             ->asForm()
-            ->post('http://127.0.0.1:8000/search/', [
+            ->post($pythonEndpoint, [
                 'pregunta' => $message,
                 'group_id' => (string) $groupId,
                 'category' => $categorySlug
@@ -34,7 +38,7 @@ class ChatWithAgentUseCase
             return $data['respuesta'] ?? "No pude obtener una respuesta coherente del documento.";
         }
 
-        // Manejo de errores de conexión (Ej. Error 503)
+        // Manejo de errores de conexión
         throw new Exception("El motor de Inteligencia Artificial no está disponible en este momento. Intente de nuevo.");
     }
 }
