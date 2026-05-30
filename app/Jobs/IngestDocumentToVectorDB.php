@@ -45,10 +45,15 @@ class IngestDocumentToVectorDB implements ShouldQueue
 
             // 3. Petición HTTP a tu API de Python
             // Le damos 60 segundos de timeout por si Gemini está un poco lento
+            $pythonBaseUrl = env('PYTHON_API_URL', 'http://127.0.0.1:8000');
+            
+            // Construimos la URL completa
+            $pythonEndpoint = rtrim($pythonBaseUrl, '/') . '/ingest/';
+
             $response = Http::timeout(60)
                 ->attach(
                     'file', file_get_contents($absolutePath), $this->document->original_name
-                )->post('http://127.0.0.1:8000/ingest/', [
+                )->post($pythonEndpoint, [
                     'group_id' => (string) $this->document->group_id,
                     'category' => $categorySlug,
                 ]);
