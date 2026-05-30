@@ -1,0 +1,1 @@
+import{j as d}from"./app-C4ImOnsl.js";function s({children:o,className:r=""}){return d.jsx("div",{className:`bg-notion-sidebar border border-notion-border rounded-md shadow-sm p-6 ${r}`,children:o})}export{s as N};
