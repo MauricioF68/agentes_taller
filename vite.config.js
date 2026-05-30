@@ -3,7 +3,7 @@ import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-    base: process.env.APP_ENV === 'production' ? '/agentes/public/build/' : '/',
+    base: process.env.APP_ENV === 'production' ? '/agentes/build/' : '/',
     plugins: [
         laravel({
             input: 'resources/js/app.jsx',
