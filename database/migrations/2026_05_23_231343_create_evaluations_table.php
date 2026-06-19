@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('group_id')->constrained('groups')->cascadeOnDelete();
             $table->foreignId('teacher_id')->constrained('users')->cascadeOnDelete();
             $table->decimal('score', 4, 2)->nullable();
-            $table->enum('color_status', ['verde', 'naranja', 'rojo'])->nullable();
+            $table->string('color_status')->nullable();
             $table->text('feedback')->nullable();
             $table->timestamps();
         });

@@ -16,7 +16,7 @@ class EvaluationController extends Controller
     {
         $request->validate([
             'group_id' => 'required|exists:groups,id',
-            'score'    => 'required|numeric|min:0|max:20',
+            'color_status' => 'required|string|in:calavera,enojado,rojo,naranja,amarillo,verde',
             'feedback' => 'nullable|string|max:1000'
         ]);
 
@@ -24,7 +24,7 @@ class EvaluationController extends Controller
             $evaluateGroupUseCase->execute(
                 $request->group_id,
                 auth()->id(),
-                $request->score,
+                $request->color_status,
                 $request->feedback
             );
 
@@ -41,8 +41,9 @@ class EvaluationController extends Controller
     {
         $request->validate([
             'group_id' => 'required|exists:groups,id',
-            'category_slug' => 'required|string', // Se necesita el slug para ChromaDB (ej. 'project_charter')
-            'message'  => 'required|string|max:500'
+            'category_slug' => 'nullable|string', 
+            'message'  => 'required|string|max:1000',
+            'history'  => 'nullable|array' // Historial de chat
         ]);
 
         try {
@@ -50,11 +51,10 @@ class EvaluationController extends Controller
                 auth()->id(),
                 $request->group_id,
                 $request->category_slug,
-                $request->message
+                $request->message,
+                $request->history ?? []
             );
 
-            // A diferencia de otros controladores, aquí devolvemos JSON 
-            // porque será un chat dinámico en React, no queremos recargar la página.
             return response()->json([
                 'status' => 'success',
                 'reply'  => $iaResponse

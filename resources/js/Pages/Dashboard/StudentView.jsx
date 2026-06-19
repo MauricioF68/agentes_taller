@@ -62,6 +62,15 @@ export default function StudentView({ myGroup, availableGroups, categories }) {
         );
     }
 
+    const EMOJI_MAP = {
+        calavera: { emoji: '💀', title: 'Estado Crítico (No hay avance)', bgClass: 'bg-gray-900', textClass: 'text-white' },
+        enojado: { emoji: '😡', title: 'Muy Deficiente', bgClass: 'bg-red-800', textClass: 'text-white' },
+        rojo: { emoji: '🔴', title: 'Deficiente / Con Errores', bgClass: 'bg-red-500', textClass: 'text-white' },
+        naranja: { emoji: '🟠', title: 'Regular / Incompleto', bgClass: 'bg-orange-500', textClass: 'text-white' },
+        amarillo: { emoji: '🟡', title: 'Aceptable / Por Buen Camino', bgClass: 'bg-yellow-400', textClass: 'text-gray-900' },
+        verde: { emoji: '🟢', title: 'Excelente / Óptimo', bgClass: 'bg-green-500', textClass: 'text-white' }
+    };
+
     return (
         <div className="space-y-6">
             <NotionCard>
@@ -69,6 +78,23 @@ export default function StudentView({ myGroup, availableGroups, categories }) {
                     <h3 className="text-lg font-medium text-notion-text">Mi Grupo: {myGroup.name}</h3>
                     <StatusBadge status="alumno" />
                 </div>
+
+                {/* Banner de Estado de Salud (Evaluación) */}
+                {myGroup.evaluation && myGroup.evaluation.color_status && (
+                    <div className={`mb-6 p-5 rounded-2xl shadow-sm border flex items-start gap-4 transition-all ${EMOJI_MAP[myGroup.evaluation.color_status]?.bgClass || 'bg-gray-100'} ${EMOJI_MAP[myGroup.evaluation.color_status]?.textClass || 'text-gray-800'}`}>
+                        <div className="text-5xl drop-shadow-md bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                            {EMOJI_MAP[myGroup.evaluation.color_status]?.emoji || '⚪'}
+                        </div>
+                        <div className="flex flex-col justify-center">
+                            <h4 className="font-bold tracking-wide uppercase text-xs opacity-70 mb-1">Veredicto del Docente</h4>
+                            <h3 className="font-extrabold text-xl mb-1">{EMOJI_MAP[myGroup.evaluation.color_status]?.title || 'Evaluación'}</h3>
+                            <p className="text-sm font-medium leading-relaxed opacity-90 bg-black/10 p-3 rounded-lg mt-2">
+                                {myGroup.evaluation.feedback || 'Sin comentarios adicionales.'}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 <hr className="border-notion-border mb-4" />
                 
                 {/* Hijo: Formulario de subida */}

@@ -1,207 +1,246 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import axios from 'axios';
-import VoiceCopilot from './Partials/VoiceCopilot';
 import EvaluationModal from './Partials/EvaluationModal';
 import NotionCard from '@/Components/NotionCard';
-import StatusBadge from '@/Components/StatusBadge';
 
 export default function TeacherView({ groups, categories }) {
     const [activeGroup, setActiveGroup] = useState(null);
-    const [activeCategory, setActiveCategory] = useState(null);
-    const [aiAnswer, setAiAnswer] = useState(null);
-    const [loadingRAG, setLoadingRAG] = useState(false);
+    const [messages, setMessages] = useState([]);
+    const [inputText, setInputText] = useState('');
+    const [isThinking, setIsThinking] = useState(false);
     
-    // NUEVO ESTADO: Control del modal de calificación
+    // Control del modal de calificación
     const [isModalOpen, setIsModalOpen] = useState(false);
-
-    // Formulario de Evaluación de Inertia
     const { data: evalData, setData: setEvalData, post: postEval, processing: processingEval, errors: evalErrors, reset: resetEval } = useForm({
         group_id: '',
-        score: '',
+        color_status: '',
         feedback: ''
     });
 
-    const handleGroupSelected = (group) => {
-        setActiveGroup(group);
-        setEvalData('group_id', group.id); 
-        setAiAnswer(null); 
-    };
+    // Control de dictado de voz (Estilo Gemini)
+    const [isListening, setIsListening] = useState(false);
+    const recognitionRef = useRef(null);
+    const chatEndRef = useRef(null);
 
-    const handleCategorySelected = (category) => {
-        setActiveCategory(category);
-    };
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, isThinking]);
 
-    const handleQuestionCaptured = async (foundGroup, foundCategory, question, onRAGComplete) => {
-        setActiveGroup(foundGroup);
-        setActiveCategory(foundCategory);
-        setEvalData('group_id', foundGroup.id); 
-        
-        setLoadingRAG(true);
-        setAiAnswer(null);
+    useEffect(() => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'es-ES';
 
-        try {
-            // Petición a tu API de Laravel conectada con Python
-            const response = await axios.post(route('agent.chat'), {
-                group_id: foundGroup.id, 
-                category_slug: foundCategory.slug,
-                message: question
-            });
-
-            const reply = response.data.reply;
-            setAiAnswer(reply);
-
-            // Filtros semánticos de control de fallos en base a lo que dicta Gemini
-            const failedPhrases = ["no encontre", "no dispongo", "no incluye", "no hay informacion", "no describe"];
-            const isFailure = failedPhrases.some(phrase => reply.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(phrase));
-
-            let fraseVoz = "";
-            // Obligamos al orquestador a mantenerse en modo escucha continua
-            let nextStatus = 'WAITING_NEXT_ACTION'; 
-
-            if (isFailure) {
-                fraseVoz = "Esa información no está explícita en el archivo. ¿Qué otra cosa deseas buscar, o prefieres cambiar de entregable?";
-            } else {
-                fraseVoz = "He mostrado la evidencia en la pantalla. Te escucho, ¿cuál es tu siguiente consulta o cambiamos de archivo?";
-            }
-
-            const utterance = new SpeechSynthesisUtterance(fraseVoz);
-            utterance.lang = 'es-ES';
-            
-            const voices = window.speechSynthesis.getVoices();
-            const betterVoice = voices.find(v => v.name.includes('Google español') || v.name.includes('es-ES'));
-            if (betterVoice) utterance.voice = betterVoice;
-
-            utterance.onend = () => {
-                // Al terminar el habla, devolvemos el flujo al asistente en el estado WAITING_NEXT_ACTION
-                if (onRAGComplete) onRAGComplete(nextStatus); 
+            recognition.onresult = (event) => {
+                const transcript = Array.from(event.results)
+                    .map(result => result[0].transcript)
+                    .join('');
+                setInputText(transcript);
             };
-            
-            window.speechSynthesis.speak(utterance);
 
-        } catch (error) {
-            console.error("Error consultando a la IA:", error);
-            setAiAnswer("⚠️ Ocurrió un error al consultar el motor RAG.");
-            // En caso de caída de red, el micrófono se resguarda en reposo seguro
-            if (onRAGComplete) onRAGComplete('SLEEPING'); 
-        } finally {
-            setLoadingRAG(false);
+            recognition.onerror = (event) => {
+                console.error("Error en dictado:", event.error);
+                setIsListening(false);
+            };
+
+            recognition.onend = () => {
+                setIsListening(false);
+            };
+
+            recognitionRef.current = recognition;
+        }
+    }, []);
+
+    const toggleDictation = () => {
+        if (isListening) {
+            recognitionRef.current?.stop();
+        } else {
+            setInputText('');
+            recognitionRef.current?.start();
+            setIsListening(true);
         }
     };
 
-    const submitEvaluation = (e) => {
-        e.preventDefault();
-        postEval(route('groups.evaluate'), {
-            onSuccess: () => {
-                alert("¡Calificación guardada exitosamente!");
-                setIsModalOpen(false); // Cerramos el modal tras el éxito
-                resetEval();
-            }
-        });
+    const handleSendMessage = async (e) => {
+        if (e) e.preventDefault();
+        if (!inputText.trim() || !activeGroup) return;
+
+        const userMsg = inputText.trim();
+        setInputText('');
+        if (isListening) recognitionRef.current?.stop();
+
+        const newHistory = [...messages, { role: 'user', content: userMsg }];
+        setMessages(newHistory);
+        setIsThinking(true);
+
+        try {
+            // Transformar el historial para el backend (filtrando los nulls u otros campos si hubiera)
+            const historyPayload = messages.map(m => ({ role: m.role, content: m.content }));
+
+            const response = await axios.post(route('agent.chat'), {
+                group_id: activeGroup.id,
+                category_slug: null, // Ya no dependemos de una categoría obligatoria
+                message: userMsg,
+                history: historyPayload
+            });
+
+            const reply = response.data.reply;
+            setMessages(prev => [...prev, { role: 'model', content: reply }]);
+
+        } catch (error) {
+            console.error("Error consultando a la IA:", error);
+            setMessages(prev => [...prev, { role: 'model', content: "⚠️ Ocurrió un error al conectar con el servidor RAG. Verifica tu conexión a Python." }]);
+        } finally {
+            setIsThinking(false);
+        }
     };
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
             
-            {/* BARRA SUPERIOR E ACCIONES DE NAVEGACIÓN */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 border border-gray-100 rounded-2xl shadow-sm">
-                <div>
-                    <h2 className="text-xl font-bold text-gray-800 tracking-tight">Consola de Control RAG</h2>
-                    <p className="text-xs text-gray-400">Panel operativo centralizado con comandos e interacción por voz en tiempo real.</p>
+            {/* Cabecera / Controles Superiores */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 border border-gray-100 rounded-2xl shadow-sm mb-4 shrink-0">
+                <div className="flex items-center gap-4 w-full sm:w-auto">
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-800 tracking-tight flex items-center gap-2">
+                            <span>🤖</span> Consola RAG
+                        </h2>
+                    </div>
+                    {/* Selector de Grupo */}
+                    <select 
+                        className="ml-4 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg shadow-sm text-sm"
+                        value={activeGroup ? activeGroup.id : ''}
+                        onChange={(e) => {
+                            const group = groups.find(g => g.id === parseInt(e.target.value));
+                            setActiveGroup(group);
+                            setMessages([]); // Limpiar chat al cambiar de grupo
+                        }}
+                    >
+                        <option value="" disabled>Seleccione un grupo a auditar...</option>
+                        {groups.map(g => {
+                            const evalColor = g.evaluation?.color_status;
+                            const emojiMap = { calavera: '💀', enojado: '😡', rojo: '🔴', naranja: '🟠', amarillo: '🟡', verde: '🟢' };
+                            const emoji = evalColor ? emojiMap[evalColor] : '⚪';
+                            return (
+                                <option key={g.id} value={g.id}>{emoji} {g.name}</option>
+                            );
+                        })}
+                    </select>
                 </div>
                 
-                {/* BOTÓN PREMIM PARA LANZAR EL MODAL ADMINISTRATIVO */}
                 <button 
                     onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-gray-200 active:scale-95"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-xl transition-all shadow-md shadow-gray-200 active:scale-95 whitespace-nowrap"
                 >
-                    <span>📊</span> Evaluar Equipos y Notas
+                    <span>📊</span> Evaluar Equipo
                 </button>
             </div>
 
-            {/* SECCIÓN PRINCIPAL: EL ASISTENTE OCUPA EL 100% DE LA PANTALLA */}
-            <div className="space-y-6">
+            {/* Ventana de Chat Principal */}
+            <NotionCard className="flex-1 flex flex-col overflow-hidden bg-gray-50/50 relative border-gray-200">
                 
-                {/* Asistente de Voz Robusto (Ocupa todo el ancho) */}
-                <VoiceCopilot 
-                    groups={groups} 
-                    categories={categories}
-                    onQuestionCaptured={handleQuestionCaptured}
-                />
-
-                {/* Gran Pantalla Holográfica de Evidencias */}
-                <NotionCard className="min-h-[40vh] flex flex-col">
-                    <div className="flex justify-between items-center mb-4 border-b pb-2">
-                        <h3 className="text-lg font-medium text-notion-text flex items-center gap-2">
-                            <span>🖥️</span> Terminal de Evidencias e Insights IA
-                        </h3>
-                        {activeGroup && <StatusBadge status="docente" />}
+                {!activeGroup ? (
+                    <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                        <span className="text-6xl mb-4 animate-pulse opacity-40">🏢</span>
+                        <p className="font-medium text-gray-500">Selecciona un grupo en la parte superior para iniciar la auditoría.</p>
                     </div>
+                ) : (
+                    <>
+                        {/* Área de Historial */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                            {messages.length === 0 && (
+                                <div className="h-full flex flex-col items-center justify-center text-gray-400 opacity-70">
+                                    <span className="text-5xl mb-4">💬</span>
+                                    <p>Pregúntame sobre el Backlog, Dailys o entregables del {activeGroup.name}</p>
+                                </div>
+                            )}
 
-                    {!activeGroup ? (
-                        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 py-12">
-                            <span className="text-6xl mb-4 animate-pulse opacity-40">🤖</span>
-                            <p className="italic text-sm">Di "Ey Sistema" para iniciar o presiona el botón superior para ver listados.</p>
+                            {messages.map((msg, idx) => (
+                                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm'}`}>
+                                        <p className="text-sm whitespace-pre-wrap leading-relaxed font-sans">
+                                            {msg.content}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {isThinking && (
+                                <div className="flex justify-start">
+                                    <div className="bg-white border border-gray-200 rounded-2xl p-4 rounded-tl-sm shadow-sm flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={chatEndRef} />
                         </div>
-                    ) : (
-                        <div className="space-y-4 flex-1 flex flex-col">
-                            {/* Tags de estado actuales de la consulta de voz */}
-                            <div className="flex flex-wrap gap-3">
-                                <div className="bg-gray-50 border px-3 py-2 rounded-xl text-xs">
-                                    <span className="font-semibold text-gray-400 uppercase tracking-wider block">Target Grupo</span>
-                                    <span className="text-sm font-medium text-gray-700">{activeGroup.name}</span>
-                                </div>
-                                <div className="bg-gray-50 border px-3 py-2 rounded-xl text-xs">
-                                    <span className="font-semibold text-gray-400 uppercase tracking-wider block">Target Entregable</span>
-                                    <span className="text-sm font-medium text-gray-700">{activeCategory ? activeCategory.name : 'Escaneando...'}</span>
-                                </div>
-                            </div>
 
-                            {/* Canvas de Respuesta Vectorial */}
-                            <div className="mt-4 flex-1 flex flex-col">
-                                <h4 className="font-semibold text-sm text-blue-600 mb-3 tracking-wide">
-                                    ✨ Fragmento RAG Recuperado (Gemini 2.5 Flash)
-                                </h4>
+                        {/* Barra de Input Inferior */}
+                        <div className="p-4 bg-white border-t border-gray-200 shrink-0">
+                            <form onSubmit={handleSendMessage} className="flex items-center gap-2 max-w-4xl mx-auto relative">
+                                <button
+                                    type="button"
+                                    onClick={toggleDictation}
+                                    className={`p-3 rounded-full transition-colors flex-shrink-0 ${isListening ? 'bg-red-100 text-red-500 animate-pulse' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                                    title="Dictar por voz"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+                                    </svg>
+                                </button>
                                 
-                                {loadingRAG && (
-                                    <div className="flex-1 bg-blue-50/30 border border-blue-100 rounded-xl p-8 flex flex-col items-center justify-center space-y-3 min-h-[20vh]">
-                                        <div className="w-9 h-9 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                                        <p className="text-xs text-blue-700 animate-pulse font-medium">Buscando vectores de proximidad armónica en ChromaDB...</p>
-                                    </div>
-                                )}
+                                <input
+                                    type="text"
+                                    value={inputText}
+                                    onChange={(e) => setInputText(e.target.value)}
+                                    placeholder={isListening ? "Escuchando..." : "Consulta avances, dailys o documentos..."}
+                                    className="flex-1 bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-full px-6 py-3 text-sm shadow-inner transition-all outline-none"
+                                    disabled={isThinking}
+                                />
 
-                                {aiAnswer && !loadingRAG && (
-                                    <div className="flex-1 bg-white border border-gray-200 p-6 rounded-xl text-sm text-gray-800 whitespace-pre-wrap shadow-inner leading-relaxed font-sans">
-                                        {aiAnswer}
-                                    </div>
-                                )}
-
-                                {!aiAnswer && !loadingRAG && (
-                                    <div className="flex-1 bg-gray-50/50 border border-dashed border-gray-200 rounded-xl p-8 flex items-center justify-center text-xs text-gray-400 italic min-h-[20vh]">
-                                        La transcripción de las respuestas y cláusulas de los archivos aparecerán aquí tras la consulta de voz.
-                                    </div>
-                                )}
-                            </div>
+                                <button
+                                    type="submit"
+                                    disabled={!inputText.trim() || isThinking}
+                                    className="p-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-md shadow-blue-200 flex-shrink-0"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                    </svg>
+                                </button>
+                            </form>
                         </div>
-                    )}
-                </NotionCard>
-            </div>
+                    </>
+                )}
+            </NotionCard>
 
-            {/* INYECCIÓN DEL MODAL SEPARADO */}
             <EvaluationModal 
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 groups={groups}
                 categories={categories}
                 activeGroup={activeGroup}
-                onGroupSelected={handleGroupSelected}
+                onGroupSelected={setActiveGroup}
                 evalData={evalData}
                 setEvalData={setEvalData}
-                submitEvaluation={submitEvaluation}
+                submitEvaluation={(e) => {
+                    e.preventDefault();
+                    postEval(route('groups.evaluate'), {
+                        onSuccess: () => {
+                            alert("¡Calificación guardada exitosamente!");
+                            setIsModalOpen(false);
+                            resetEval();
+                        }
+                    });
+                }}
                 processingEval={processingEval}
                 evalErrors={evalErrors}
             />
-
         </div>
     );
 }

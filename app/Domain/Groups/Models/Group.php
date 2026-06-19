@@ -2,13 +2,19 @@
 
 namespace App\Domain\Groups\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
 use App\Domain\Documents\Models\Document;
 use App\Domain\Evaluations\Models\Evaluation;
+use App\Domain\Agile\Models\BacklogItem;
+use App\Domain\Agile\Models\Daily;
+use App\Domain\Agile\Models\Sprint;
 
 class Group extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'name', 
         'teacher_id'
@@ -44,5 +50,20 @@ class Group extends Model
     public function evaluation()
     {
         return $this->hasOne(Evaluation::class, 'group_id');
+    }
+
+    public function backlogItems()
+    {
+        return $this->hasMany(BacklogItem::class, 'group_id');
+    }
+
+    public function dailys()
+    {
+        return $this->hasMany(Daily::class, 'group_id');
+    }
+
+    public function sprints()
+    {
+        return $this->hasMany(Sprint::class, 'group_id');
     }
 }

@@ -35,7 +35,7 @@ class DashboardController extends Controller
         
         // Vista para Alumnos
         if ($user->role === 'alumno') {
-            $myGroup = $user->groupsAsStudent()->with('latestDocuments')->first();
+            $myGroup = $user->groupsAsStudent()->with(['latestDocuments', 'evaluation'])->first();
             
             if ($myGroup) {
                 // Mismo truco para el grupo del alumno
