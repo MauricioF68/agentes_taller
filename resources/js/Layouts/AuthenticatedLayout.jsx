@@ -1,13 +1,27 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function AuthenticatedLayout({ header, children }) {
-    const { user, activeGroupId } = usePage().props.auth;
+    const { props } = usePage();
+    const { user, activeGroupId } = props.auth;
+    const flash = props.flash || {};
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    useEffect(() => {
+        if (flash.success) {
+            toast.success(flash.success);
+        }
+        if (flash.error) {
+            toast.error(flash.error);
+        }
+    }, [flash.success, flash.error]);
 
     return (
         <div className="flex h-screen bg-notion-bg text-notion-text overflow-hidden font-sans">
+            <ToastContainer position="bottom-right" theme="colored" />
             
             {/* Sidebar para Escritorio */}
             <aside className="hidden md:flex flex-col w-64 bg-notion-sidebar border-r border-notion-border shadow-sm">
