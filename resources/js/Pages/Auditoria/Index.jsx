@@ -4,6 +4,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import NotionCard from '@/Components/NotionCard';
 import axios from 'axios';
 import { motion } from 'framer-motion';
+import MetricsCard from '@/Components/MetricsCard';
 
 export default function AuditoriaIndex({ auth, groups, categories }) {
     const [activeGroup, setActiveGroup] = useState(null);
@@ -90,7 +91,12 @@ export default function AuditoriaIndex({ auth, groups, categories }) {
             });
 
             const reply = response.data.reply;
-            setMessages(prev => [...prev, { role: 'model', content: reply }]);
+            setMessages(prev => [...prev, { 
+                role: 'model', 
+                content: reply, 
+                has_metrics: response.data.has_metrics, 
+                metrics_data: response.data.metrics_data 
+            }]);
 
         } catch (error) {
             console.error("Error consultando a la IA:", error);
@@ -183,6 +189,11 @@ export default function AuditoriaIndex({ auth, groups, categories }) {
                                             <p className="text-[15px] whitespace-pre-wrap leading-relaxed font-sans">
                                                 {msg.content}
                                             </p>
+                                            {msg.has_metrics && msg.metrics_data && (
+                                                <div className="mt-4 border-t border-gray-100 pt-4">
+                                                    <MetricsCard data={msg.metrics_data} />
+                                                </div>
+                                            )}
                                         </div>
                                     </motion.div>
                                 ))}
