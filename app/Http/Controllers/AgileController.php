@@ -58,6 +58,7 @@ class AgileController extends Controller
             'story_points' => 'nullable|integer|min:1|max:5',
             'sprint' => 'nullable|string',
             'assigned_to' => 'nullable|exists:users,id',
+            'due_date' => 'nullable|date',
         ]);
 
         try {
@@ -93,6 +94,7 @@ class AgileController extends Controller
             'story_points' => 'nullable|integer|min:1|max:5',
             'sprint_id' => 'nullable|exists:sprints,id',
             'assigned_to' => 'nullable|exists:users,id',
+            'due_date' => 'nullable|date',
         ]);
 
         try {

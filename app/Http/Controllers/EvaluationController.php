@@ -74,38 +74,74 @@ class EvaluationController extends Controller
 
             if ($shouldShowMetrics && $group) {
                 $items = $group->backlogItems;
-                $totalPoints = $items->sum('story_points');
-                if ($totalPoints == 0) $totalPoints = 1; // avoid division by zero
-                $completedPoints = $items->where('status', 'completed')->sum('story_points');
                 
-                $todo = $items->where('status', 'backlog')->count();
-                $inProgress = $items->whereIn('status', ['in_progress', 'assigned'])->count();
-                $completed = $items->where('status', 'completed')->count();
+                // --- Cálculo de Métricas (Función Helper interna) ---
+                $calculateMetrics = function($filteredItems) {
+                    $totalPoints = $filteredItems->sum('story_points');
+                    if ($totalPoints == 0) $totalPoints = 1;
+                    $completedPoints = $filteredItems->where('status', 'completed')->sum('story_points');
+                    
+                    $todo = $filteredItems->where('status', 'backlog')->count();
+                    $inProgress = $filteredItems->whereIn('status', ['in_progress', 'assigned'])->count();
+                    $completed = $filteredItems->where('status', 'completed')->count();
 
-                $sevenDaysAgo = now()->subDays(7);
-                $inactivityAlerts = $items->whereIn('status', ['backlog', 'assigned', 'in_progress'])
-                    ->filter(function($item) use ($sevenDaysAgo) {
-                        return $item->updated_at < $sevenDaysAgo;
+                    // Historias Vencidas y Entregas Tardías
+                    $overdueAlerts = $filteredItems->filter(function($item) {
+                        if (!$item->due_date) return false;
+                        
+                        $dueDate = \Carbon\Carbon::parse($item->due_date)->endOfDay();
+                        
+                        // Si está completado, verificar si fue entregado tarde
+                        if ($item->status === 'completed' && $item->completed_at) {
+                            return \Carbon\Carbon::parse($item->completed_at)->greaterThan($dueDate);
+                        }
+                        
+                        // Si no está completado, verificar si ya se venció
+                        return now()->greaterThan($dueDate);
                     })->map(function($item) {
+                        $isCompletedLate = $item->status === 'completed';
                         return [
                             'item_id' => $item->id,
                             'title' => $item->title,
-                            'days_stuck' => (int) $item->updated_at->diffInDays(now())
+                            'type' => $isCompletedLate ? 'late_delivery' : 'overdue',
+                            'message' => $isCompletedLate ? 'Entregado tarde' : 'Vencido'
                         ];
                     })->values()->toArray();
 
+                    return [
+                        'velocity' => [
+                            'completed_points' => (int) $completedPoints,
+                            'total_points' => (int) $filteredItems->sum('story_points'),
+                            'percentage' => round(($completedPoints / $totalPoints) * 100)
+                        ],
+                        'status_distribution' => [
+                            'todo' => $todo,
+                            'in_progress' => $inProgress,
+                            'completed' => $completed
+                        ],
+                        'overdue_alerts' => $overdueAlerts
+                    ];
+                };
+
+                // Métricas Globales
+                $globalMetrics = $calculateMetrics($items);
+
+                // Métricas Semanales (ítems actualizados, creados o completados esta semana)
+                $startOfWeek = now()->startOfWeek();
+                $weeklyItems = $items->filter(function($item) use ($startOfWeek) {
+                    return $item->updated_at >= $startOfWeek || 
+                           ($item->completed_at && $item->completed_at >= $startOfWeek) ||
+                           ($item->due_date && \Carbon\Carbon::parse($item->due_date) >= $startOfWeek);
+                });
+                $weeklyMetrics = $calculateMetrics($weeklyItems);
+
+                // Detectar si la intención primaria era esta semana
+                $isWeeklyIntent = str_contains($msgLower, 'esta semana') || str_contains($msgLower, 'últimos días') || str_contains($msgLower, 'hoy');
+
                 $metricsData = [
-                    'velocity' => [
-                        'completed_points' => (int) $completedPoints,
-                        'total_points' => (int) $items->sum('story_points'),
-                        'percentage' => round(($completedPoints / $totalPoints) * 100)
-                    ],
-                    'status_distribution' => [
-                        'todo' => $todo,
-                        'in_progress' => $inProgress,
-                        'completed' => $completed
-                    ],
-                    'inactivity_alerts' => $inactivityAlerts
+                    'default_view' => $isWeeklyIntent ? 'weekly' : 'global',
+                    'global' => $globalMetrics,
+                    'weekly' => $weeklyMetrics
                 ];
                 $hasMetrics = true;
             }

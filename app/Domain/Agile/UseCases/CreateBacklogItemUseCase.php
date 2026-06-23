@@ -29,6 +29,7 @@ class CreateBacklogItemUseCase
             'story_points' => isset($data['story_points']) ? (int) $data['story_points'] : 1,
             'sprint_id' => $data['sprint_id'] ?? null,
             'assigned_to' => $data['assigned_to'] ?? null,
+            'due_date' => $data['due_date'] ?? null,
         ]);
 
         return $item;

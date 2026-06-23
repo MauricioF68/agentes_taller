@@ -18,7 +18,8 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
         type: 'user_story',
         sprint_id: sprints?.length > 0 ? sprints[0].id : '',
         assigned_to: '',
-        story_points: 1
+        story_points: 1,
+        due_date: ''
     });
 
     const { data: sprintData, setData: setSprintData, post: postSprint, processing: processingSprint, reset: resetSprint } = useForm({
@@ -37,7 +38,8 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
         type: 'user_story',
         sprint_id: '',
         assigned_to: '',
-        story_points: 1
+        story_points: 1,
+        due_date: ''
     });
 
     const columns = [
@@ -93,7 +95,8 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
             type: item.type,
             sprint_id: item.sprint_id || '',
             assigned_to: item.assigned_to || '',
-            story_points: item.story_points || 1
+            story_points: item.story_points || 1,
+            due_date: item.due_date ? item.due_date.split('T')[0] : ''
         });
         setIsViewModalOpen(true);
     };
@@ -228,6 +231,14 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                             <label className="block text-sm font-medium text-gray-700">Criterios de Aceptación</label>
                             <textarea className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" rows="3" placeholder="Ej. Dado que [condición], cuando [acción], entonces [resultado]"
                                 value={editData.acceptance_criteria} onChange={e => setEditData('acceptance_criteria', e.target.value)} />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Fecha de Vencimiento (Opcional)</label>
+                                <input type="date" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    value={editData.due_date} onChange={e => setEditData('due_date', e.target.value)} />
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -365,6 +376,14 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                             <label className="block text-sm font-medium text-gray-700">Criterios de Aceptación</label>
                             <textarea className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3" rows="3" placeholder="Ej. Dado que [condición], cuando [acción], entonces [resultado]"
                                 value={data.acceptance_criteria} onChange={e => setData('acceptance_criteria', e.target.value)} />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">Fecha de Vencimiento (Opcional)</label>
+                                <input type="date" className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3"
+                                    value={data.due_date} onChange={e => setData('due_date', e.target.value)} />
+                            </div>
                         </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

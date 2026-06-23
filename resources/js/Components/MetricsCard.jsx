@@ -1,10 +1,12 @@
-import React from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import React, { useState } from 'react';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function MetricsCard({ data }) {
-    if (!data) return null;
+    if (!data || !data.global || !data.weekly) return null;
 
-    const { velocity, status_distribution, inactivity_alerts } = data;
+    const [view, setView] = useState(data.default_view || 'global');
+    const currentMetrics = data[view];
+    const { velocity, status_distribution, overdue_alerts } = currentMetrics;
 
     // Datos para la distribución
     const statusData = [
@@ -14,15 +16,31 @@ export default function MetricsCard({ data }) {
     ].filter(item => item.value > 0);
 
     return (
-        <div className="w-full mt-4 space-y-4">
+        <div className="w-full mt-4 space-y-4 relative">
+            
+            {/* Selector de Rango de Tiempo */}
+            <div className="absolute -top-12 right-0 bg-white shadow-sm border border-gray-200 rounded-lg flex overflow-hidden">
+                <button 
+                    onClick={() => setView('global')}
+                    className={`px-3 py-1.5 text-xs font-semibold transition-colors ${view === 'global' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                    Histórico
+                </button>
+                <button 
+                    onClick={() => setView('weekly')}
+                    className={`px-3 py-1.5 text-xs font-semibold transition-colors ${view === 'weekly' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                >
+                    Esta Semana
+                </button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
                 {/* 1. Avance (Velocity) */}
                 <div className="bg-white p-5 rounded-2xl border border-indigo-100 shadow-sm flex flex-col justify-between">
                     <div>
                         <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                             <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                            Avance del Proyecto
+                            Avance ({view === 'global' ? 'Total' : 'Semanal'})
                         </h4>
                         <p className="text-xs text-gray-400 mb-4">Basado en Story Points quemados</p>
                     </div>
@@ -72,6 +90,7 @@ export default function MetricsCard({ data }) {
                                         outerRadius={50}
                                         paddingAngle={5}
                                         dataKey="value"
+                                        isAnimationActive={true}
                                     >
                                         {statusData.map((entry, index) => (
                                             <Cell key={`cell-${index}`} fill={entry.color} />
@@ -95,19 +114,19 @@ export default function MetricsCard({ data }) {
                 </div>
             </div>
 
-            {/* 3. Alertas de Inactividad */}
-            {inactivity_alerts && inactivity_alerts.length > 0 && (
+            {/* 3. Alertas de Inactividad y Tareas Atrasadas */}
+            {overdue_alerts && overdue_alerts.length > 0 && (
                 <div className="bg-red-50 border border-red-100 rounded-2xl p-5 shadow-sm">
                     <h4 className="text-sm font-bold text-red-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                        Alertas de Inactividad (Más de 7 días)
+                        Rendimiento de Fechas ({overdue_alerts.length} alertas)
                     </h4>
-                    <div className="space-y-2">
-                        {inactivity_alerts.map((alert, idx) => (
+                    <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                        {overdue_alerts.map((alert, idx) => (
                             <div key={idx} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm border border-red-50">
-                                <span className="font-semibold text-gray-800 text-sm">{alert.title}</span>
-                                <span className="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded-md">
-                                    {alert.days_stuck} días inactivo
+                                <span className="font-semibold text-gray-800 text-sm truncate max-w-[70%]">{alert.title}</span>
+                                <span className={`text-xs font-bold px-2 py-1 rounded-md ${alert.type === 'late_delivery' ? 'bg-orange-100 text-orange-600' : 'bg-red-100 text-red-600'}`}>
+                                    {alert.message}
                                 </span>
                             </div>
                         ))}

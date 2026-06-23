@@ -17,8 +17,14 @@ class BacklogItem extends Model
         'status',
         'story_points',
         'completed_at',
+        'due_date',
         'sprint_id',
         'assigned_to'
+    ];
+
+    protected $casts = [
+        'due_date' => 'date',
+        'completed_at' => 'datetime'
     ];
 
     public function sprint()
