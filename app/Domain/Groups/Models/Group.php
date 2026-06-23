@@ -17,8 +17,17 @@ class Group extends Model
 
     protected $fillable = [
         'name', 
-        'teacher_id'
+        'teacher_id',
+        'academic_cycle_id',
+        'classroom',
+        'shift',
+        'project_name'
     ];
+
+    public function academicCycle()
+    {
+        return $this->belongsTo(\App\Domain\Academic\Models\AcademicCycle::class, 'academic_cycle_id');
+    }
 
     public function teacher()
     {

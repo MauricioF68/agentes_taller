@@ -1,43 +1,51 @@
-import NotionCard from '@/Components/NotionCard';
-
 export default function DocumentList({ documents, categories }) {
     const renderCategorySection = (title, categoryId) => {
-        // Gracias al backend, docs solo traerá la última versión o nada.
         const latestDoc = documents.find(doc => doc.category_id === categoryId);
 
         return (
-            <div className="mb-6 last:mb-0">
-                <h4 className="font-semibold text-sm text-notion-text border-b border-notion-border pb-2 mb-3">
-                    {title}
-                </h4>
+            <div className="mb-4 last:mb-0">
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                    <h4 className="font-extrabold text-sm text-gray-800 uppercase tracking-wider">{title}</h4>
+                </div>
+                
                 {latestDoc ? (
-                    <div className="border border-blue-200 rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-blue-50/30 transition-colors shadow-sm">
-                        <div className="flex flex-col mb-2 sm:mb-0">
-                            <span className="font-semibold text-sm text-blue-700">{latestDoc.original_name}</span>
-                            <span className="text-xs text-blue-400 mt-0.5">Última versión activa sincronizada con IA</span>
+                    <div className="border border-indigo-100 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-indigo-50/30 hover:bg-indigo-50/50 transition-colors shadow-sm group">
+                        <div className="flex items-start gap-3 mb-3 sm:mb-0">
+                            <div className="bg-indigo-100 p-2.5 rounded-lg text-indigo-600 group-hover:scale-105 transition-transform">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="font-extrabold text-sm text-gray-900">{latestDoc.original_name}</span>
+                                <span className="text-xs text-gray-500 font-medium mt-0.5">Sincronizado con IA</span>
+                            </div>
                         </div>
                         
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 ml-12 sm:ml-0">
                             {latestDoc.status_ai === 'pending' && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white text-yellow-600 animate-pulse border border-yellow-200 shadow-sm">
-                                    ⏳ Procesando en Motor IA...
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white text-yellow-600 border border-yellow-200 shadow-sm animate-pulse">
+                                    <svg className="w-4 h-4 animate-spin text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                    Procesando IA
                                 </span>
                             )}
                             {latestDoc.status_ai === 'vectorized' && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-500 text-white shadow-sm shadow-green-200">
-                                    ✅ Indexado en ChromaDB
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200 shadow-sm">
+                                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Indexado
                                 </span>
                             )}
                             {latestDoc.status_ai === 'failed' && (
-                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-300">
-                                    ❌ Error - Volver a subir
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200 shadow-sm">
+                                    <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Error al indexar
                                 </span>
                             )}
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-gray-50 border border-dashed border-gray-300 rounded-lg p-4 text-center">
-                        <p className="text-xs text-gray-500 italic">Aún no se ha subido ningún archivo para este entregable.</p>
+                    <div className="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-5 flex flex-col items-center justify-center gap-2">
+                        <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <p className="text-xs font-bold text-gray-400">Aún no se ha subido archivo</p>
                     </div>
                 )}
             </div>
@@ -45,15 +53,12 @@ export default function DocumentList({ documents, categories }) {
     };
 
     return (
-        <NotionCard>
-            <h3 className="text-lg font-medium text-notion-text mb-6">Estado de los Entregables</h3>
-            <div className="space-y-4">
-                {categories && categories.map((cat) => (
-                    <div key={cat.id}>
-                        {renderCategorySection(cat.name, cat.id)}
-                    </div>
-                ))}
-            </div>
-        </NotionCard>
+        <div className="space-y-6">
+            {categories && categories.map((cat) => (
+                <div key={cat.id}>
+                    {renderCategorySection(cat.name, cat.id)}
+                </div>
+            ))}
+        </div>
     );
 }

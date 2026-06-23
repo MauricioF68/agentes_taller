@@ -26,6 +26,7 @@ class CreateBacklogItemUseCase
             'acceptance_criteria' => $data['acceptance_criteria'] ?? null,
             'type' => $data['type'] ?? 'user_story',
             'status' => $data['status'] ?? 'backlog',
+            'story_points' => isset($data['story_points']) ? (int) $data['story_points'] : 1,
             'sprint_id' => $data['sprint_id'] ?? null,
             'assigned_to' => $data['assigned_to'] ?? null,
         ]);

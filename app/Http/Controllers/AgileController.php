@@ -55,6 +55,7 @@ class AgileController extends Controller
             'acceptance_criteria' => 'nullable|string',
             'type' => 'nullable|string',
             'status' => 'nullable|string',
+            'story_points' => 'nullable|integer|min:1|max:5',
             'sprint' => 'nullable|string',
             'assigned_to' => 'nullable|exists:users,id',
         ]);
@@ -89,6 +90,7 @@ class AgileController extends Controller
             'acceptance_criteria' => 'nullable|string',
             'type' => 'nullable|string',
             'status' => 'nullable|string',
+            'story_points' => 'nullable|integer|min:1|max:5',
             'sprint_id' => 'nullable|exists:sprints,id',
             'assigned_to' => 'nullable|exists:users,id',
         ]);

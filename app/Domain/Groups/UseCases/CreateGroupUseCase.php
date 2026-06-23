@@ -11,12 +11,12 @@ class CreateGroupUseCase
     /**
      * Ejecuta la creación de un nuevo grupo validando que el creador sea docente.
      *
-     * @param string $name
+     * @param array $data
      * @param int $teacherId
      * @return Group
      * @throws Exception
      */
-    public function execute(string $name, int $teacherId): Group
+    public function execute(array $data, int $teacherId): Group
     {
         $teacher = User::find($teacherId);
 
@@ -26,7 +26,11 @@ class CreateGroupUseCase
         }
 
         return Group::create([
-            'name' => $name,
+            'name' => $data['name'] ?? 'Sin Nombre',
+            'project_name' => $data['project_name'] ?? null,
+            'academic_cycle_id' => $data['academic_cycle_id'] ?? null,
+            'classroom' => $data['classroom'] ?? null,
+            'shift' => $data['shift'] ?? null,
             'teacher_id' => $teacherId
         ]);
     }

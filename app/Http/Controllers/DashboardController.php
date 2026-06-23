@@ -18,12 +18,28 @@ class DashboardController extends Controller
         // Vista para Docentes
         if ($user->role === 'docente') {
             // Cargamos 'latestDocuments' en lugar de 'documents'
-            $groups = $user->groupsAsTeacher()->with(['students', 'evaluation', 'latestDocuments'])->get();
+            $groups = $user->groupsAsTeacher()->with(['academicCycle', 'students', 'evaluation', 'latestDocuments', 'backlogItems', 'sprints'])->get();
             
-            // TRUCO ARQUITECTÓNICO: Renombramos la relación al vuelo para no romper React
+            // TRUCO ARQUITECTÓNICO: Renombramos la relación al vuelo para no romper React y calculamos métricas ágiles
             $groups->each(function($group) {
                 $group->setRelation('documents', $group->latestDocuments);
                 $group->unsetRelation('latestDocuments');
+
+                // Calcular métricas ágiles
+                $backlogItems = $group->backlogItems;
+                $totalPoints = $backlogItems->sum('story_points');
+                $completedPoints = $backlogItems->where('status', 'completed')->sum('story_points');
+                
+                $group->agile_metrics = [
+                    'total_points' => $totalPoints,
+                    'completed_points' => $completedPoints,
+                    'progress_percentage' => $totalPoints > 0 ? round(($completedPoints / $totalPoints) * 100) : 0,
+                    'total_items' => $backlogItems->count(),
+                    'completed_items' => $backlogItems->where('status', 'completed')->count(),
+                    'in_progress_items' => $backlogItems->where('status', 'in_progress')->count(),
+                    'issues_count' => $backlogItems->where('type', 'issue')->count(),
+                    'active_sprints' => $group->sprints->where('is_active', true)->count()
+                ];
             });
             
             return Inertia::render('Dashboard', [

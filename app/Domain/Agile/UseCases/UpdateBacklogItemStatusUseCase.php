@@ -22,6 +22,13 @@ class UpdateBacklogItemStatusUseCase
         }
 
         $item->status = $status;
+        
+        if ($status === 'completed') {
+            $item->completed_at = now();
+        } else {
+            $item->completed_at = null;
+        }
+        
         $item->save();
 
         return $item;

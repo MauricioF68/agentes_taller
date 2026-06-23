@@ -15,6 +15,8 @@ class BacklogItem extends Model
         'acceptance_criteria',
         'type',
         'status',
+        'story_points',
+        'completed_at',
         'sprint_id',
         'assigned_to'
     ];

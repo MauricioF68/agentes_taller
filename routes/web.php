@@ -7,6 +7,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\AgileController;
+use App\Http\Controllers\AuditController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -34,8 +35,13 @@ Route::middleware('auth')->group(function () {
     
     // --- RUTAS EXCLUSIVAS PARA DOCENTES ---
     Route::middleware(['role:docente'])->group(function () {
+        Route::post('/cycles', [\App\Http\Controllers\AcademicCycleController::class, 'store'])->name('cycles.store');
+        
         Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
+        Route::patch('/groups/{group}/project', [GroupController::class, 'updateProjectName'])->name('groups.project.update');
         Route::post('/groups/evaluate', [\App\Http\Controllers\EvaluationController::class, 'evaluate'])->name('groups.evaluate');
+        
+        Route::get('/auditoria', [AuditController::class, 'index'])->name('audit.index');
         Route::post('/agent/chat', [\App\Http\Controllers\EvaluationController::class, 'chat'])->name('agent.chat');
     });
 

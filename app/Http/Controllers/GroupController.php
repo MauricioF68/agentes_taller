@@ -20,9 +20,14 @@ class GroupController extends Controller
 
         // Si es Docente: Le enviamos los grupos que ha creado.
         if ($user->role === 'docente') {
-            $groups = $user->groupsAsTeacher()->with('students')->get();
+            $groups = $user->groupsAsTeacher()->with(['students', 'evaluation', 'academicCycle'])->get();
+            $cycles = \App\Domain\Academic\Models\AcademicCycle::where('teacher_id', $user->id)->get();
+            $categories = \App\Domain\Documents\Models\Category::all();
+
             return Inertia::render('Groups/TeacherGroups', [
-                'groups' => $groups
+                'groups' => $groups,
+                'cycles' => $cycles,
+                'categories' => $categories
             ]);
         }
 
@@ -45,12 +50,22 @@ class GroupController extends Controller
     {
         // Validación básica de entrada HTTP
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'nullable|string|max:255',
+            'project_name' => 'nullable|string|max:255',
+            'academic_cycle_id' => 'required|exists:academic_cycles,id',
+            'classroom' => 'required|string|max:255',
+            'shift' => 'required|string|max:255',
         ]);
 
         try {
+            // Generar un nombre automático si no lo envía (ej: G402 - Lunes)
+            $data = $request->all();
+            if (empty($data['name'])) {
+                $data['name'] = $data['classroom'] . ' - ' . $data['shift'];
+            }
+
             // Ejecutamos el caso de uso inyectando el ID del usuario logueado
-            $createGroupUseCase->execute($request->name, auth()->id());
+            $createGroupUseCase->execute($data, auth()->id());
             
             // Retornamos hacia la vista de React con un mensaje de éxito en la sesión
             return back()->with('success', 'Grupo creado exitosamente.');
@@ -58,6 +73,28 @@ class GroupController extends Controller
             // Si la regla de negocio falla, retornamos el error
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    public function updateProjectName(Request $request, Group $group)
+    {
+        $request->validate([
+            'project_name' => 'required|string|max:255',
+        ]);
+
+        // Authorization: Teacher or student belonging to the group
+        $user = auth()->user();
+        $isTeacher = $group->teacher_id === $user->id;
+        $isStudent = $group->students()->where('users.id', $user->id)->exists();
+
+        if (!$isTeacher && !$isStudent) {
+            return back()->with('error', 'No tienes permiso para modificar este grupo.');
+        }
+
+        $group->update([
+            'project_name' => $request->project_name
+        ]);
+
+        return back()->with('success', 'Nombre del proyecto actualizado.');
     }
 
     /**
