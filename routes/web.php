@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\AgileController;
 use App\Http\Controllers\AuditController;
+use App\Http\Controllers\MeetingMinuteController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -61,6 +62,14 @@ Route::middleware('auth')->group(function () {
             
             Route::get('/groups/{group}/dailys', [AgileController::class, 'indexDailys'])->name('agile.dailys');
             Route::post('/groups/{group}/dailys', [AgileController::class, 'storeDaily'])->name('agile.dailys.store');
+            
+            // --- ACTAS Y ACUERDOS ---
+            Route::get('/groups/{group}/minutes', [MeetingMinuteController::class, 'index'])->name('agile.minutes');
+            Route::post('/groups/{group}/minutes/upload', [MeetingMinuteController::class, 'uploadAudio'])->name('agile.minutes.upload');
+            Route::post('/groups/{group}/minutes/{minute}/generate', [MeetingMinuteController::class, 'generateStructuredMinute'])->name('agile.minutes.generate');
+            Route::put('/groups/{group}/minutes/{minute}/save', [MeetingMinuteController::class, 'saveStructuredMinute'])->name('agile.minutes.save');
+            Route::post('/groups/{group}/minutes/{minute}/generate-backlog', [MeetingMinuteController::class, 'generateBacklogSuggestions'])->name('agile.minutes.generate_backlog');
+            Route::post('/groups/{group}/minutes/{minute}/apply-backlog', [MeetingMinuteController::class, 'applyBacklogSuggestions'])->name('agile.minutes.apply_backlog');
         });
     });
 });
