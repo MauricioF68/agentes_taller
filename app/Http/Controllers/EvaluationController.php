@@ -60,7 +60,7 @@ class EvaluationController extends Controller
             $metricsData = null;
             $hasMetrics = false;
 
-            $keywords = ['métrica', 'metrica', 'avance', 'progreso', 'estado', 'resumen', 'métricas', 'metricas'];
+            $keywords = ['métrica', 'metrica', 'avance', 'progreso', 'estado', 'resumen', 'métricas', 'metricas', 'tracking', 'seguimiento', 'movimientos', 'actividad', 'tendencia', 'flujo', 'cuello de botella', 'volatilidad'];
             $msgLower = strtolower($request->message);
             $responseLower = strtolower($iaResponse);
 
@@ -123,8 +123,44 @@ class EvaluationController extends Controller
                     ];
                 };
 
+                // Helper for Tracking Metrics
+                $calculateTrackingMetrics = function($filteredHistories) {
+                    $volatilityCount = $filteredHistories->filter(function($h) {
+                        return in_array($h->action, ['title_change', 'description_change', 'acceptance_criteria_change']);
+                    })->count();
+
+                    $backwardsCount = 0;
+                    $statusWeights = ['backlog' => 0, 'assigned' => 1, 'in_progress' => 2, 'completed' => 3];
+                    foreach ($filteredHistories->where('action', 'status_change') as $h) {
+                        $oldW = $statusWeights[$h->old_value] ?? -1;
+                        $newW = $statusWeights[$h->new_value] ?? -1;
+                        if ($oldW > -1 && $newW > -1 && $newW < $oldW) {
+                            $backwardsCount++;
+                        }
+                    }
+
+                    $timeline = $filteredHistories->groupBy(function($h) {
+                        return $h->created_at->format('Y-m-d');
+                    })->map(function($dayHistories, $date) {
+                        return ['date' => $date, 'count' => $dayHistories->count()];
+                    })->values()->sortBy('date')->toArray();
+
+                    return [
+                        'volatility_count' => $volatilityCount,
+                        'backwards_count' => $backwardsCount,
+                        'timeline' => $timeline
+                    ];
+                };
+
+                // Base queries
+                $items = $group->backlogItems;
+                $histories = \App\Models\BacklogItemHistory::whereHas('backlogItem', function($q) use ($group) {
+                    $q->where('group_id', $group->id);
+                })->get();
+
                 // Métricas Globales
                 $globalMetrics = $calculateMetrics($items);
+                $globalMetrics['tracking'] = $calculateTrackingMetrics($histories);
 
                 // Métricas Semanales (ítems actualizados, creados o completados esta semana)
                 $startOfWeek = now()->startOfWeek();
@@ -133,7 +169,13 @@ class EvaluationController extends Controller
                            ($item->completed_at && $item->completed_at >= $startOfWeek) ||
                            ($item->due_date && \Carbon\Carbon::parse($item->due_date) >= $startOfWeek);
                 });
+                
+                $weeklyHistories = $histories->filter(function($h) use ($startOfWeek) {
+                    return $h->created_at >= $startOfWeek;
+                });
+
                 $weeklyMetrics = $calculateMetrics($weeklyItems);
+                $weeklyMetrics['tracking'] = $calculateTrackingMetrics($weeklyHistories);
 
                 // Detectar si la intención primaria era esta semana
                 $isWeeklyIntent = str_contains($msgLower, 'esta semana') || str_contains($msgLower, 'últimos días') || str_contains($msgLower, 'hoy');

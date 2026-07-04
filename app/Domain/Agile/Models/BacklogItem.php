@@ -48,4 +48,14 @@ class BacklogItem extends Model
                     ->withPivot('type')
                     ->withTimestamps();
     }
+
+    public function comments()
+    {
+        return $this->hasMany(\App\Models\BacklogItemComment::class)->latest();
+    }
+
+    public function histories()
+    {
+        return $this->hasMany(\App\Models\BacklogItemHistory::class)->latest();
+    }
 }

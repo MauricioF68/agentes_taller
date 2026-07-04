@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 export default function MetricsCard({ data }) {
     if (!data || !data.global || !data.weekly) return null;
@@ -130,6 +130,70 @@ export default function MetricsCard({ data }) {
                                 </span>
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+            {/* 4. Métricas de Tracking Avanzadas (Si están disponibles) */}
+            {currentMetrics.tracking && (
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mt-6">
+                    <div className="p-5 border-b border-gray-100 bg-gray-50/50">
+                        <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            Métricas de Comportamiento (Tracking)
+                        </h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+                        {/* Tendencia / Línea de tiempo */}
+                        <div className="p-5 md:col-span-2">
+                            <h5 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Tendencia de Actividad (Movimientos)</h5>
+                            <div className="h-40 w-full">
+                                {currentMetrics.tracking.timeline.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={currentMetrics.tracking.timeline} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
+                                            <defs>
+                                                <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                            <XAxis dataKey="date" tick={{fontSize: 10}} tickLine={false} axisLine={false} />
+                                            <YAxis tick={{fontSize: 10}} tickLine={false} axisLine={false} />
+                                            <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
+                                            <Area type="monotone" dataKey="count" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                ) : (
+                                    <div className="flex items-center justify-center h-full text-xs text-gray-400">Sin movimientos registrados</div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Indicadores Clave */}
+                        <div className="p-5 flex flex-col justify-center space-y-6">
+                            <div>
+                                <div className="text-3xl font-black text-gray-800 flex items-baseline gap-2">
+                                    {currentMetrics.tracking.volatility_count}
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Cambios</span>
+                                </div>
+                                <div className="text-xs font-medium text-gray-500 mt-1">Volatilidad (Alcance modificado)</div>
+                                {currentMetrics.tracking.volatility_count > 5 && (
+                                    <div className="mt-2 text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-md inline-block">Mucha volatilidad detectada</div>
+                                )}
+                            </div>
+                            
+                            <div>
+                                <div className="text-3xl font-black text-gray-800 flex items-baseline gap-2">
+                                    {currentMetrics.tracking.backwards_count}
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Retrocesos</span>
+                                </div>
+                                <div className="text-xs font-medium text-gray-500 mt-1">Cuellos de botella (Pasos atrás)</div>
+                                {currentMetrics.tracking.backwards_count > 3 && (
+                                    <div className="mt-2 text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded-md inline-block">Posible bloqueo en el flujo</div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

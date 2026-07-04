@@ -99,7 +99,11 @@ class AgileController extends Controller
 
         try {
             $useCase->execute($itemId, $request->all());
-            return back()->with('success', 'Ítem actualizado exitosamente.');
+            
+            // Si el ítem fue editado (posiblemente corrigiendo un comentario), borramos los comentarios asociados
+            \App\Models\BacklogItemComment::where('backlog_item_id', $itemId)->delete();
+            
+            return back()->with('success', 'Ítem corregido exitosamente.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -143,5 +147,48 @@ class AgileController extends Controller
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    public function teacherBacklog(Group $group)
+    {
+        // Traer ítems con asignados, comentarios e historial (tracking)
+        $items = $group->backlogItems()
+            ->with(['assignee', 'sprint', 'comments.user', 'histories.user'])
+            ->get();
+            
+        $members = $group->students()->get();
+        $sprints = $group->sprints()->orderBy('id', 'desc')->get();
+
+        return Inertia::render('Agile/TeacherBacklogBoard', [
+            'group' => $group,
+            'items' => $items,
+            'members' => $members,
+            'sprints' => $sprints
+        ]);
+    }
+
+    public function teacherTracking(Request $request, Group $group)
+    {
+        $endDate = $request->input('end_date') ? \Carbon\Carbon::parse($request->input('end_date'))->endOfDay() : \Carbon\Carbon::now()->endOfDay();
+        $startDate = $request->input('start_date') ? \Carbon\Carbon::parse($request->input('start_date'))->startOfDay() : \Carbon\Carbon::now()->subDays(10)->startOfDay();
+
+        // Get all tracking history for the group, ordered by latest, with date filters
+        $histories = \App\Models\BacklogItemHistory::whereHas('backlogItem', function ($query) use ($group) {
+            $query->where('group_id', $group->id);
+        })
+        ->whereBetween('created_at', [$startDate, $endDate])
+        ->with(['user', 'backlogItem'])
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+        return Inertia::render('Agile/TeacherTracking', [
+            'group' => $group,
+            'histories' => $histories,
+            'filters' => [
+                'start_date' => $startDate->format('Y-m-d'),
+                'end_date' => $endDate->format('Y-m-d'),
+                'is_default' => !$request->has('start_date') && !$request->has('end_date')
+            ]
+        ]);
     }
 }

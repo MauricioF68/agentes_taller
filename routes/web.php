@@ -9,6 +9,7 @@ use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\AgileController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\MeetingMinuteController;
+use App\Http\Controllers\BacklogCommentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -44,12 +45,19 @@ Route::middleware('auth')->group(function () {
         
         Route::get('/auditoria', [AuditController::class, 'index'])->name('audit.index');
         Route::post('/agent/chat', [\App\Http\Controllers\EvaluationController::class, 'chat'])->name('agent.chat');
+        
+        // --- SEGUIMIENTO Y COMENTARIOS DOCENTE ---
+        Route::get('/groups/{group}/teacher-backlog', [AgileController::class, 'teacherBacklog'])->name('agile.teacher_backlog');
+        Route::get('/groups/{group}/teacher-tracking', [AgileController::class, 'teacherTracking'])->name('agile.teacher_tracking');
+        Route::post('/backlog/{item}/comments', [BacklogCommentController::class, 'store'])->name('backlog.comments.store');
     });
 
     // --- RUTAS EXCLUSIVAS PARA ALUMNOS ---
     Route::middleware(['role:alumno'])->group(function () {
         Route::post('/groups/join', [GroupController::class, 'join'])->name('groups.join');
         Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+        
+        Route::get('/my-comments', [BacklogCommentController::class, 'indexStudentComments'])->name('student.comments');
         
         // --- RUTAS ÁGILES (BACKLOG & DAILYS) + PROTECCIÓN DE GRUPO ---
         Route::middleware(['group.access'])->group(function () {

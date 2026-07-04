@@ -12,12 +12,12 @@ export default function AuthenticatedLayout({ header, children }) {
 
     useEffect(() => {
         if (flash.success) {
-            toast.success(flash.success);
+            toast.success(flash.success, { toastId: Date.now() + Math.random() });
         }
         if (flash.error) {
-            toast.error(flash.error);
+            toast.error(flash.error, { toastId: Date.now() + Math.random() });
         }
-    }, [flash.success, flash.error]);
+    }, [flash]); // Usamos todo el objeto flash como dependencia
 
     const teacherLinks = [
         {
@@ -218,10 +218,32 @@ export default function AuthenticatedLayout({ header, children }) {
             )}
 
             {/* Contenido Principal */}
-            <div className="flex-1 flex flex-col overflow-y-auto w-full pt-16 md:pt-0 bg-gray-50/50">
+            <div className="flex-1 flex flex-col overflow-y-auto w-full pt-16 md:pt-0 bg-gray-50/50 relative">
                 {header && (
-                    <header className="px-4 sm:px-8 py-6 max-w-7xl mx-auto w-full">
-                        {header}
+                    <header className="px-4 sm:px-8 py-6 max-w-7xl mx-auto w-full flex justify-between items-center relative z-10">
+                        <div className="flex-1">{header}</div>
+                        
+                        {/* Notification Bell for Students */}
+                        {user.role === 'alumno' && (
+                            <div className="ml-4">
+                                <Link 
+                                    href={route('student.comments')}
+                                    className={`relative p-2 transition-colors flex items-center justify-center rounded-full shadow-sm border ${user.unread_notifications_count > 0 ? 'bg-orange-50 border-orange-200 text-orange-600 hover:bg-orange-100' : 'text-gray-500 hover:text-indigo-600 hover:bg-white border-transparent'}`}
+                                    title="Comentarios del Docente"
+                                >
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                    </svg>
+                                    {user.unread_notifications_count > 0 && (
+                                        <span className="absolute top-0 right-0 flex h-5 w-5 transform translate-x-1/4 -translate-y-1/4">
+                                            <span className="relative inline-flex rounded-full h-5 w-5 bg-red-600 border-2 border-white items-center justify-center text-[10px] font-bold text-white shadow-md">
+                                                {user.unread_notifications_count}
+                                            </span>
+                                        </span>
+                                    )}
+                                </Link>
+                            </div>
+                        )}
                     </header>
                 )}
                 <main className="px-4 sm:px-8 pb-12 max-w-7xl mx-auto w-full flex-1">
