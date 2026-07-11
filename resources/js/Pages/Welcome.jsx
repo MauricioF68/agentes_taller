@@ -1,108 +1,159 @@
 import { Head, Link } from '@inertiajs/react';
+import { motion } from 'framer-motion';
+import { LayoutDashboard, LogIn, UserPlus, ArrowRight, Activity, Users, ShieldCheck } from 'lucide-react';
 
 export default function Welcome({ auth, laravelVersion, phpVersion }) {
     return (
         <>
             <Head title="Taller Integrador I" />
             
-            <div className="min-h-screen relative overflow-hidden bg-[#f0f4f8] text-gray-800 font-sans selection:bg-blue-500 selection:text-white">
+            <div className="min-h-screen bg-[#f8fafc] text-slate-800 font-sans selection:bg-slate-800 selection:text-white">
                 
-                {/* --- Fondo Animado (Mesh Gradient Claro) --- */}
-                <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] bg-blue-300/30 rounded-full blur-3xl animate-pulse mix-blend-multiply" style={{ animationDuration: '10s' }}></div>
-                <div className="absolute bottom-[-10%] right-[-20%] w-[70vw] h-[70vw] bg-purple-300/20 rounded-full blur-3xl animate-pulse mix-blend-multiply" style={{ animationDuration: '12s' }}></div>
-                <div className="absolute top-[30%] right-[10%] w-[40vw] h-[40vw] bg-cyan-200/30 rounded-full blur-3xl animate-pulse mix-blend-multiply" style={{ animationDuration: '8s' }}></div>
-                
-                {/* --- Emojis Flotantes Decorativos --- */}
-                <div className="absolute top-[20%] left-[10%] text-7xl opacity-20 drop-shadow-xl animate-bounce" style={{ animationDuration: '6s' }}>🟢</div>
-                <div className="absolute bottom-[20%] left-[15%] text-6xl opacity-20 drop-shadow-xl animate-bounce" style={{ animationDuration: '8s' }}>🔵</div>
-                <div className="absolute top-[15%] right-[15%] text-6xl opacity-20 drop-shadow-xl animate-pulse" style={{ animationDuration: '5s' }}>🤖</div>
-                <div className="absolute bottom-[30%] right-[10%] text-5xl opacity-10 drop-shadow-xl animate-bounce" style={{ animationDuration: '7s' }}>✨</div>
-
                 {/* --- Navbar Principal --- */}
-                <header className="relative z-20 px-8 py-6 flex justify-between items-center max-w-7xl mx-auto">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-white p-2 rounded-xl shadow-md border border-gray-100">
-                            <span className="text-2xl">🚀</span>
+                <header className="relative z-20 px-8 py-6 flex justify-between items-center max-w-7xl mx-auto border-b border-slate-200 bg-white/50 backdrop-blur-md sticky top-0">
+                    <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex items-center gap-3"
+                    >
+                        <div className="bg-slate-900 p-2 rounded-lg shadow-sm">
+                            <Activity className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-xl font-extrabold tracking-tight text-gray-800">Taller Integrador I</span>
-                    </div>
+                        <span className="text-xl font-semibold tracking-tight text-slate-900">
+                            Taller Integrador I
+                        </span>
+                    </motion.div>
                     
-                    <nav className="flex gap-4">
+                    <motion.nav 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="flex gap-4 items-center"
+                    >
                         {auth.user ? (
                             <Link
                                 href={route('dashboard')}
-                                className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm shadow-lg shadow-blue-200 hover:bg-blue-700 hover:scale-105 transition-all"
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white font-medium text-sm shadow-sm hover:bg-slate-800 transition-colors"
                             >
+                                <LayoutDashboard className="w-4 h-4" />
                                 Ir al Dashboard
                             </Link>
                         ) : (
                             <>
                                 <Link
                                     href={route('login')}
-                                    className="px-5 py-2.5 rounded-xl bg-white text-gray-700 font-bold text-sm shadow-sm border border-gray-200 hover:bg-gray-50 hover:shadow-md transition-all"
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-600 font-medium text-sm hover:bg-slate-100 transition-colors"
                                 >
+                                    <LogIn className="w-4 h-4" />
                                     Iniciar Sesión
                                 </Link>
                                 <Link
                                     href={route('register')}
-                                    className="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm shadow-lg shadow-blue-200 hover:bg-blue-700 hover:scale-105 transition-all"
+                                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white font-medium text-sm shadow-sm hover:bg-slate-800 transition-colors"
                                 >
-                                    Regístrate Ahora
+                                    <UserPlus className="w-4 h-4" />
+                                    Regístrate
                                 </Link>
                             </>
                         )}
-                    </nav>
+                    </motion.nav>
                 </header>
 
                 {/* --- Hero Section Principal --- */}
-                <main className="relative z-10 flex flex-col items-center justify-center min-h-[80vh] px-6 text-center">
+                <main className="relative z-10 flex flex-col items-center justify-center min-h-[80vh] px-6 text-center max-w-5xl mx-auto">
                     
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 border border-white/50 backdrop-blur-md mb-8 shadow-sm animate-fade-in-up">
-                        <span className="relative flex h-3 w-3">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 shadow-sm mb-8"
+                    >
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                         </span>
-                        <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Plataforma Activa</span>
-                    </div>
+                        <span className="text-xs font-medium text-slate-600 tracking-wide">
+                            Plataforma Activa
+                        </span>
+                    </motion.div>
 
-                    <h1 className="text-6xl md:text-8xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-600 mb-6 drop-shadow-sm leading-tight">
-                        Taller Integrador I
-                    </h1>
+                    <motion.h1 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-tight"
+                    >
+                        Gestión Ágil <br className="hidden md:block"/> a Nivel Profesional
+                    </motion.h1>
                     
-                    <p className="max-w-2xl text-xl md:text-2xl text-gray-600 font-medium leading-relaxed mb-10">
-                        Gestiona, audita y evalúa el rendimiento de tus equipos ágiles con Inteligencia Artificial.
-                    </p>
+                    <motion.p 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="max-w-2xl text-lg md:text-xl text-slate-600 font-normal leading-relaxed mb-12"
+                    >
+                        Organiza tareas, audita el rendimiento y evalúa a tus equipos con métricas claras y una interfaz diseñada para la máxima productividad.
+                    </motion.p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 mb-16">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="flex flex-col sm:flex-row gap-4 mb-16"
+                    >
                         {auth.user ? (
-                            <Link href={route('dashboard')} className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-bold text-lg shadow-xl shadow-blue-300 hover:bg-blue-700 hover:scale-105 transition-all transform hover:-translate-y-1">
-                                Continuar al Dashboard →
+                            <Link href={route('dashboard')} className="group flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-slate-900 text-white font-medium text-base shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
+                                Continuar al Dashboard
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </Link>
                         ) : (
-                            <Link href={route('register')} className="px-8 py-4 rounded-2xl bg-blue-600 text-white font-bold text-lg shadow-xl shadow-blue-300 hover:bg-blue-700 hover:scale-105 transition-all transform hover:-translate-y-1">
+                            <Link href={route('register')} className="group flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-slate-900 text-white font-medium text-base shadow-sm hover:bg-slate-800 hover:shadow-md transition-all">
                                 Empezar Ahora
+                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </Link>
                         )}
-                        
-                        <a href="#features" className="px-8 py-4 rounded-2xl bg-white/80 backdrop-blur-md text-gray-700 border border-white font-bold text-lg shadow-lg hover:bg-white hover:scale-105 transition-all transform hover:-translate-y-1">
-                            Saber Más
-                        </a>
-                    </div>
+                    </motion.div>
 
-                    {/* Fila Glassmorphism de Créditos */}
-                    <div className="mt-8 bg-white/60 backdrop-blur-2xl border border-white/50 px-8 py-6 rounded-3xl shadow-xl max-w-lg w-full transform transition-all hover:scale-105">
-                        <div className="text-sm font-black uppercase tracking-widest text-gray-400 mb-2">Desarrollado Por</div>
-                        <div className="text-xl font-extrabold text-gray-800">Mauricio Terrones Alayo</div>
-                        <div className="inline-block mt-2 px-3 py-1 bg-blue-100 text-blue-700 text-sm font-bold rounded-lg border border-blue-200">
-                            Grupo 65
+                    {/* Características / Features rápidas */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left"
+                    >
+                        <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                            <Activity className="w-8 h-8 text-slate-700 mb-4" />
+                            <h3 className="font-semibold text-slate-900 mb-2">Métricas en Tiempo Real</h3>
+                            <p className="text-sm text-slate-600">Visualiza el progreso y la velocidad de tu equipo con gráficas e indicadores precisos.</p>
                         </div>
-                    </div>
+                        <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                            <Users className="w-8 h-8 text-slate-700 mb-4" />
+                            <h3 className="font-semibold text-slate-900 mb-2">Colaboración Eficiente</h3>
+                            <p className="text-sm text-slate-600">Gestión de roles y permisos estructurada para Docentes y Alumnos.</p>
+                        </div>
+                        <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                            <ShieldCheck className="w-8 h-8 text-slate-700 mb-4" />
+                            <h3 className="font-semibold text-slate-900 mb-2">Auditoría Completa</h3>
+                            <p className="text-sm text-slate-600">Historial detallado de cada movimiento en el Backlog para mantener la trazabilidad.</p>
+                        </div>
+                    </motion.div>
+
+                    {/* Fila de Créditos minimalista */}
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.8 }}
+                        className="mt-16 flex items-center gap-4 text-sm text-slate-500"
+                    >
+                        <span>Desarrollado por <strong className="text-slate-800 font-medium">Mauricio Terrones Alayo</strong></span>
+                        <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                        <span className="px-2 py-0.5 bg-slate-100 rounded text-slate-600 font-medium text-xs">Grupo 65</span>
+                    </motion.div>
                     
                 </main>
 
                 {/* Footer simple */}
-                <footer className="relative z-10 text-center py-6 text-sm font-medium text-gray-500">
-                    Laravel v{laravelVersion} (PHP v{phpVersion}) • Construido con React e Inertia.js
+                <footer className="relative z-10 text-center py-8 text-xs font-medium text-slate-400 mt-10 border-t border-slate-200">
+                    Laravel v{laravelVersion} (PHP v{phpVersion}) • Construido con React, Inertia.js y Tailwind CSS
                 </footer>
             </div>
         </>

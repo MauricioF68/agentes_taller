@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { ArrowLeft, Info, Filter, Activity, Inbox, User, ArrowRight } from 'lucide-react';
 
 export default function TeacherTracking({ auth, group, histories, filters }) {
     const [startDate, setStartDate] = useState(filters.start_date);
@@ -19,12 +20,11 @@ export default function TeacherTracking({ auth, group, histories, filters }) {
             header={
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <Link href={route('agile.teacher_backlog', group.id)} className="p-2 text-gray-500 hover:bg-gray-100 hover:text-indigo-600 rounded-full transition-colors" title="Volver al Backlog">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        <Link href={route('agile.teacher_backlog', group.id)} className="p-2 text-slate-400 hover:bg-slate-100 hover:text-indigo-600 rounded-full transition-colors" title="Volver al Backlog">
+                            <ArrowLeft className="w-5 h-5" />
                         </Link>
                         <div>
-                            <h2 className="font-semibold text-2xl text-gray-800 leading-tight">Tracking General <span className="text-indigo-600">{group.name}</span></h2>
-                            <p className="text-sm text-gray-500 font-medium">Actividad reciente del Backlog</p>
+                            <h2 className="font-semibold text-xl text-slate-800 leading-tight flex items-center gap-2">Tracking General <span className="text-indigo-600 ml-1">{group.name}</span></h2>
                         </div>
                     </div>
                 </div>
@@ -32,106 +32,109 @@ export default function TeacherTracking({ auth, group, histories, filters }) {
         >
             <Head title={`Tracking General - ${group.name}`} />
 
-            <div className="pb-12 max-w-4xl mx-auto mt-6 px-4 sm:px-0">
-                {filters.is_default && (
-                    <div className="mb-4 bg-indigo-50 text-indigo-800 p-4 rounded-xl border border-indigo-200 flex items-center gap-3 shadow-sm">
-                        <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <p className="text-sm font-medium">Por defecto, se muestran los movimientos de los <strong>últimos 10 días</strong>. Puedes usar los filtros abajo para buscar fechas más antiguas.</p>
-                    </div>
-                )}
-
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-6">
-                    <div className="p-4 bg-gray-50/80 border-b border-gray-100 flex flex-wrap gap-4 items-end">
-                        <div>
-                            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Desde</label>
-                            <input 
-                                type="date" 
-                                value={startDate}
-                                onChange={e => setStartDate(e.target.value)}
-                                className="rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" 
-                            />
+            <div className="py-8 font-sans">
+                <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
+                    {filters.is_default && (
+                        <div className="mb-6 bg-indigo-50/80 text-indigo-800 p-4 rounded-xl border border-indigo-100 flex items-start sm:items-center gap-3 shadow-sm">
+                            <Info className="w-5 h-5 flex-shrink-0 mt-0.5 sm:mt-0 text-indigo-500" />
+                            <p className="text-sm font-medium leading-snug">Por defecto, se muestran los movimientos de los <strong className="font-bold">últimos 10 días</strong>. Puedes usar los filtros abajo para buscar fechas más antiguas.</p>
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Hasta</label>
-                            <input 
-                                type="date" 
-                                value={endDate}
-                                onChange={e => setEndDate(e.target.value)}
-                                className="rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm" 
-                            />
-                        </div>
-                        <button 
-                            onClick={applyFilters}
-                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg text-sm shadow-sm transition-colors"
-                        >
-                            Filtrar
-                        </button>
-                    </div>
-                    <div className="p-4 flex justify-between items-center border-b border-gray-100">
-                        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <svg className="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            Línea de Tiempo del Grupo
-                        </h3>
-                        <span className="text-sm font-bold text-gray-500 bg-gray-200 px-3 py-1 rounded-full">{histories.length} movimientos encontrados</span>
-                    </div>
+                    )}
 
-                    <div className="p-8">
-                        {histories.length === 0 ? (
-                            <div className="text-center py-12">
-                                <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <h3 className="text-xl font-bold text-gray-700">Sin Actividad</h3>
-                                <p className="text-gray-500 mt-2">Aún no se han registrado movimientos en este grupo.</p>
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+                        <div className="p-5 bg-slate-50/80 border-b border-slate-100 flex flex-wrap gap-4 items-end">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Desde</label>
+                                <input 
+                                    type="date" 
+                                    value={startDate}
+                                    onChange={e => setStartDate(e.target.value)}
+                                    className="rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm font-medium py-2.5 px-3" 
+                                />
                             </div>
-                        ) : (
-                            <div className="relative pl-6 border-l-2 border-indigo-100 space-y-8">
-                                {histories.map((history, index) => (
-                                    <div key={history.id} className="relative">
-                                        <div className="absolute -left-[33px] bg-indigo-500 w-4 h-4 rounded-full mt-1.5 border-4 border-white shadow-sm"></div>
-                                        <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:border-indigo-300 hover:shadow-md transition-all">
-                                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
-                                                <div>
-                                                    <span className="font-bold text-gray-900 text-sm flex items-center gap-2">
-                                                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-bold">
-                                                            {(history.user?.name || 'Sis').charAt(0)}
-                                                        </div>
-                                                        {history.user?.name || 'Sistema'}
-                                                    </span>
-                                                </div>
-                                                <span className="text-xs text-gray-500 font-medium bg-gray-100 px-2.5 py-1 rounded-md whitespace-nowrap">
-                                                    {new Date(history.created_at).toLocaleString()}
-                                                </span>
-                                            </div>
-                                            
-                                            <div className="mb-2">
-                                                <span className="text-sm text-gray-600">modificó el ítem: </span>
-                                                <span className="text-sm font-bold text-indigo-700">{history.backlog_item?.title || 'Ítem Eliminado'}</span>
-                                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Hasta</label>
+                                <input 
+                                    type="date" 
+                                    value={endDate}
+                                    onChange={e => setEndDate(e.target.value)}
+                                    className="rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm font-medium py-2.5 px-3" 
+                                />
+                            </div>
+                            <button 
+                                onClick={applyFilters}
+                                className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold py-2.5 px-5 rounded-xl text-sm shadow-sm transition-colors flex items-center gap-2"
+                            >
+                                <Filter className="w-4 h-4" />
+                                Filtrar
+                            </button>
+                        </div>
+                        <div className="p-5 flex justify-between items-center border-b border-slate-100">
+                            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <Activity className="w-5 h-5 text-indigo-600" />
+                                Línea de Tiempo del Grupo
+                            </h3>
+                            <span className="text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1 rounded-md">{histories.length} movimientos</span>
+                        </div>
 
-                                            <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100 text-sm">
-                                                <div className="mb-1">
-                                                    <span className="inline-block px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded text-[10px] font-bold uppercase tracking-wider">
-                                                        {history.action.replace('_', ' ')}
+                        <div className="p-8">
+                            {histories.length === 0 ? (
+                                <div className="text-center py-16">
+                                    <Inbox className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                                    <h3 className="text-xl font-bold text-slate-700">Sin Actividad</h3>
+                                    <p className="text-slate-500 mt-2 font-medium text-sm">Aún no se han registrado movimientos en este grupo.</p>
+                                </div>
+                            ) : (
+                                <div className="relative pl-6 border-l-2 border-indigo-100 space-y-8">
+                                    {histories.map((history, index) => (
+                                        <div key={history.id} className="relative">
+                                            <div className="absolute -left-[33px] bg-indigo-500 w-4 h-4 rounded-full mt-1.5 border-4 border-white shadow-sm"></div>
+                                            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:border-slate-300 hover:shadow-md transition-all">
+                                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4 gap-2">
+                                                    <div>
+                                                        <span className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                                                            <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 text-[10px] font-bold">
+                                                                {(history.user?.name || 'Sis').charAt(0)}
+                                                            </div>
+                                                            {history.user?.name || 'Sistema'}
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-xs text-slate-500 font-semibold bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-md whitespace-nowrap">
+                                                        {new Date(history.created_at).toLocaleString()}
                                                     </span>
                                                 </div>
                                                 
-                                                {history.action === 'status_change' ? (
-                                                    <div className="flex items-center gap-2 mt-2">
-                                                        <span className="line-through text-gray-400 font-medium">{history.old_value}</span>
-                                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-                                                        <span className="font-bold text-green-600">{history.new_value}</span>
+                                                <div className="mb-3">
+                                                    <span className="text-sm text-slate-600 font-medium">Modificó el ítem: </span>
+                                                    <span className="text-sm font-bold text-indigo-700">{history.backlog_item?.title || 'Ítem Eliminado'}</span>
+                                                </div>
+
+                                                <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-100 text-sm">
+                                                    <div className="mb-2">
+                                                        <span className="inline-block px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                                                            {history.action.replace('_', ' ')}
+                                                        </span>
                                                     </div>
-                                                ) : (
-                                                    <div className="mt-2 text-gray-700 italic">
-                                                        <span className="font-medium text-gray-500 mr-2">Detalle:</span>
-                                                        "{history.new_value}"
-                                                    </div>
-                                                )}
+                                                    
+                                                    {history.action === 'status_change' ? (
+                                                        <div className="flex items-center gap-2.5 mt-2">
+                                                            <span className="line-through text-slate-400 font-semibold">{history.old_value}</span>
+                                                            <ArrowRight className="w-4 h-4 text-slate-300" />
+                                                            <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">{history.new_value}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="mt-2 text-slate-700 font-medium">
+                                                            <span className="text-slate-500 mr-2 text-xs uppercase tracking-wider font-bold">Detalle:</span>
+                                                            "{history.new_value}"
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
