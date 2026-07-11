@@ -243,6 +243,4 @@ export default function StudentCommentsIndex({ auth, group, itemsWithComments, m
             </Modal>
         </AuthenticatedLayout>
     );
-}yout>
-    );
 }
