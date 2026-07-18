@@ -46,16 +46,9 @@ class GroupController extends Controller
     }
 
 
-    public function store(Request $request, CreateGroupUseCase $createGroupUseCase)
+    public function store(\App\Http\Requests\StoreGroupRequest $request, CreateGroupUseCase $createGroupUseCase)
     {
         // Validación básica de entrada HTTP
-        $request->validate([
-            'name' => 'nullable|string|max:255',
-            'project_name' => 'nullable|string|max:255',
-            'academic_cycle_id' => 'required|exists:academic_cycles,id',
-            'classroom' => 'required|string|max:255',
-            'shift' => 'required|string|max:255',
-        ]);
 
         try {
             // Generar un nombre automático si no lo envía (ej: G402 - Lunes)
@@ -75,11 +68,8 @@ class GroupController extends Controller
         }
     }
 
-    public function updateProjectName(Request $request, Group $group)
+    public function updateProjectName(\App\Http\Requests\UpdateProjectNameRequest $request, Group $group)
     {
-        $request->validate([
-            'project_name' => 'required|string|max:255',
-        ]);
 
         // Authorization: Teacher or student belonging to the group
         $user = auth()->user();
@@ -100,12 +90,9 @@ class GroupController extends Controller
     /**
      * Asigna al alumno logueado a un grupo existente.
      */
-    public function join(Request $request, JoinGroupUseCase $joinGroupUseCase)
+    public function join(\App\Http\Requests\JoinGroupRequest $request, JoinGroupUseCase $joinGroupUseCase)
     {
         // Validación básica de entrada HTTP
-        $request->validate([
-            'group_id' => 'required|exists:groups,id',
-        ]);
 
         try {
             // Ejecutamos el caso de uso inyectando el ID del alumno logueado

@@ -31,13 +31,8 @@ class AgileController extends Controller
         ]);
     }
 
-    public function storeSprint(Request $request, Group $group, \App\Domain\Agile\UseCases\CreateSprintUseCase $useCase)
+    public function storeSprint(\App\Http\Requests\StoreSprintRequest $request, Group $group, \App\Domain\Agile\UseCases\CreateSprintUseCase $useCase)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date',
-        ]);
 
         try {
             $useCase->execute($group->id, $request->all());
@@ -47,19 +42,8 @@ class AgileController extends Controller
         }
     }
 
-    public function storeBacklogItem(Request $request, Group $group, CreateBacklogItemUseCase $useCase)
+    public function storeBacklogItem(\App\Http\Requests\StoreBacklogItemRequest $request, Group $group, CreateBacklogItemUseCase $useCase)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'acceptance_criteria' => 'nullable|string',
-            'type' => 'nullable|string',
-            'status' => 'nullable|string',
-            'story_points' => 'nullable|integer|min:1|max:5',
-            'sprint' => 'nullable|string',
-            'assigned_to' => 'nullable|exists:users,id',
-            'due_date' => 'nullable|date',
-        ]);
 
         try {
             $useCase->execute($group->id, $request->all());
@@ -69,11 +53,8 @@ class AgileController extends Controller
         }
     }
 
-    public function updateBacklogItemStatus(Request $request, Group $group, $itemId, UpdateBacklogItemStatusUseCase $useCase)
+    public function updateBacklogItemStatus(\App\Http\Requests\UpdateBacklogItemStatusRequest $request, Group $group, $itemId, UpdateBacklogItemStatusUseCase $useCase)
     {
-        $request->validate([
-            'status' => 'required|string',
-        ]);
 
         try {
             $useCase->execute($itemId, $request->status);
@@ -83,19 +64,8 @@ class AgileController extends Controller
         }
     }
 
-    public function updateBacklogItem(Request $request, Group $group, $itemId, UpdateBacklogItemUseCase $useCase)
+    public function updateBacklogItem(\App\Http\Requests\UpdateBacklogItemRequest $request, Group $group, $itemId, UpdateBacklogItemUseCase $useCase)
     {
-        $request->validate([
-            'title' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
-            'acceptance_criteria' => 'nullable|string',
-            'type' => 'nullable|string',
-            'status' => 'nullable|string',
-            'story_points' => 'nullable|integer|min:1|max:5',
-            'sprint_id' => 'nullable|exists:sprints,id',
-            'assigned_to' => 'nullable|exists:users,id',
-            'due_date' => 'nullable|date',
-        ]);
 
         try {
             $useCase->execute($itemId, $request->all());
@@ -131,15 +101,8 @@ class AgileController extends Controller
         ]);
     }
 
-    public function storeDaily(Request $request, Group $group, CreateDailyUseCase $useCase)
+    public function storeDaily(\App\Http\Requests\StoreDailyRequest $request, Group $group, CreateDailyUseCase $useCase)
     {
-        $request->validate([
-            'achievements_text' => 'required|string',
-            'plans_text' => 'required|string',
-            'impediments' => 'nullable|string',
-            'yesterday_items' => 'nullable|array',
-            'today_items' => 'nullable|array',
-        ]);
 
         try {
             $useCase->execute($group->id, auth()->id(), $request->all());

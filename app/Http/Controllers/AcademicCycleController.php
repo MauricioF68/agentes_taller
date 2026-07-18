@@ -7,12 +7,8 @@ use App\Domain\Academic\Models\AcademicCycle;
 
 class AcademicCycleController extends Controller
 {
-    public function store(Request $request)
+    public function store(\App\Http\Requests\StoreAcademicCycleRequest $request)
     {
-        $request->validate([
-            'year' => 'required|integer|min:2020|max:2100',
-            'period' => 'required|integer|min:1|max:4',
-        ]);
 
         $user = $request->user();
 

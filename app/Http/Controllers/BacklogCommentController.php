@@ -14,11 +14,8 @@ class BacklogCommentController extends Controller
     /**
      * Store a new comment (Teacher side)
      */
-    public function store(Request $request, BacklogItem $item)
+    public function store(\App\Http\Requests\StoreBacklogCommentRequest $request, BacklogItem $item)
     {
-        $request->validate([
-            'content' => 'required|string|max:1000'
-        ]);
 
         $comment = BacklogItemComment::create([
             'backlog_item_id' => $item->id,

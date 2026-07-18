@@ -26,11 +26,8 @@ class MeetingMinuteController extends Controller
     /**
      * Upload and transcribe audio using Deepgram.
      */
-    public function uploadAudio(Request $request, Group $group)
+    public function uploadAudio(\App\Http\Requests\UploadAudioMinuteRequest $request, Group $group)
     {
-        $request->validate([
-            'audio' => 'required|file|mimes:webm,mp3,wav,ogg,mp4',
-        ]);
 
         $file = $request->file('audio');
         $audioContent = file_get_contents($file->getRealPath());
@@ -161,12 +158,8 @@ class MeetingMinuteController extends Controller
     /**
      * Save the final structured minute (can be edited by student).
      */
-    public function saveStructuredMinute(Request $request, Group $group, MeetingMinute $minute)
+    public function saveStructuredMinute(\App\Http\Requests\SaveStructuredMinuteRequest $request, Group $group, MeetingMinute $minute)
     {
-        $request->validate([
-            'structured_minute' => 'required|string',
-            'title' => 'required|string|max:255'
-        ]);
 
         $minute->update([
             'title' => $request->title,
@@ -238,12 +231,8 @@ class MeetingMinuteController extends Controller
     /**
      * Save the accepted backlog suggestions.
      */
-    public function applyBacklogSuggestions(Request $request, Group $group, MeetingMinute $minute)
+    public function applyBacklogSuggestions(\App\Http\Requests\ApplyBacklogSuggestionsRequest $request, Group $group, MeetingMinute $minute)
     {
-        $request->validate([
-            'new_items' => 'array',
-            'updated_items' => 'array'
-        ]);
 
         $newItems = $request->input('new_items', []);
         $updatedItems = $request->input('updated_items', []);

@@ -11,13 +11,8 @@ class DocumentController extends Controller
     /**
      * Almacena un documento subido por el alumno.
      */
-    public function store(Request $request, UploadDocumentUseCase $uploadDocumentUseCase)
+    public function store(\App\Http\Requests\StoreDocumentRequest $request, UploadDocumentUseCase $uploadDocumentUseCase)
     {
-        $request->validate([
-            'group_id' => 'required|exists:groups,id',
-            'category_id' => 'required|exists:categories,id',
-            'file' => 'required|file|mimes:pdf,doc,docx,txt|max:20480', 
-        ]);
 
         try {
             $uploadDocumentUseCase->execute(

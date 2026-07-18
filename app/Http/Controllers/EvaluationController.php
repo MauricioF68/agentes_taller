@@ -12,13 +12,8 @@ class EvaluationController extends Controller
     /**
      * Almacena o actualiza la calificación de un grupo.
      */
-    public function evaluate(Request $request, EvaluateGroupUseCase $evaluateGroupUseCase)
+    public function evaluate(\App\Http\Requests\EvaluateGroupRequest $request, EvaluateGroupUseCase $evaluateGroupUseCase)
     {
-        $request->validate([
-            'group_id' => 'required|exists:groups,id',
-            'color_status' => 'required|string|in:calavera,enojado,rojo,naranja,amarillo,verde',
-            'feedback' => 'nullable|string|max:1000'
-        ]);
 
         try {
             $evaluateGroupUseCase->execute(
@@ -37,14 +32,8 @@ class EvaluationController extends Controller
     /**
      * Procesa la conversación del docente con el Agente de IA.
      */
-    public function chat(Request $request, ChatWithAgentUseCase $chatWithAgentUseCase)
+    public function chat(\App\Http\Requests\ChatWithAgentRequest $request, ChatWithAgentUseCase $chatWithAgentUseCase)
     {
-        $request->validate([
-            'group_id' => 'required|exists:groups,id',
-            'category_slug' => 'nullable|string', 
-            'message'  => 'required|string|max:1000',
-            'history'  => 'nullable|array' // Historial de chat
-        ]);
 
         try {
             $iaResponse = $chatWithAgentUseCase->execute(
