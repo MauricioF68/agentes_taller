@@ -74,8 +74,9 @@ export default function MeetingMinutes({ auth, group, minutes }) {
             toast.success('Audio transcrito correctamente');
             router.reload({ only: ['minutes'] }); 
         } catch (error) {
-            console.error(error);
-            toast.error('Error al procesar el audio');
+            console.error('Error detallado:', error.response?.data || error.message);
+            const serverError = error.response?.data?.error || 'Error al procesar el audio';
+            toast.error(serverError);
         } finally {
             setIsUploading(false);
             setAudioBlob(null);

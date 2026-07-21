@@ -51,6 +51,7 @@ class MeetingMinuteController extends Controller
                 $transcription = trim($data['results']['channels'][0]['alternatives'][0]['transcript'] ?? '');
 
                 if (empty($transcription)) {
+                    Log::warning('Deepgram transcription is empty. Full response:', $data);
                     return response()->json([
                         'error' => 'No se detectó voz en el audio. Asegúrate de hablar claro y que tu micrófono funcione.'
                     ], 400);
