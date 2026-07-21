@@ -48,7 +48,13 @@ class MeetingMinuteController extends Controller
 
             if ($response->successful()) {
                 $data = $response->json();
-                $transcription = $data['results']['channels'][0]['alternatives'][0]['transcript'] ?? '';
+                $transcription = trim($data['results']['channels'][0]['alternatives'][0]['transcript'] ?? '');
+
+                if (empty($transcription)) {
+                    return response()->json([
+                        'error' => 'No se detectó voz en el audio. Asegúrate de hablar claro y que tu micrófono funcione.'
+                    ], 400);
+                }
 
                 // Create initial minute record
                 $minute = MeetingMinute::create([
