@@ -7,6 +7,7 @@ import {
     ArrowLeft, Activity, Users, Layers, MessageSquare, 
     History, Send, X, Clock, AlertCircle, CheckCircle2 
 } from 'lucide-react';
+import VoiceToTextButton from '@/Components/VoiceToTextButton';
 
 const statusColumns = [
     { id: 'backlog', title: 'Backlog', icon: <Layers className="w-4 h-4 text-slate-500" /> },
@@ -336,9 +337,12 @@ export default function TeacherBacklogBoard({ auth, group, items, sprints, membe
 
                                 <div className="p-6 border-t border-slate-200 bg-white">
                                     <form onSubmit={submitComment}>
-                                        <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider mb-3">
-                                            Añadir Revisión
-                                        </label>
+                                        <div className="flex justify-between items-center mb-3">
+                                            <label className="block text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                Añadir Revisión
+                                            </label>
+                                            <VoiceToTextButton onTranscription={(text) => setCommentData('content', (commentData.content ? commentData.content + ' ' : '') + text)} />
+                                        </div>
                                         <textarea 
                                             className="w-full rounded-xl border-slate-200 bg-slate-50 shadow-sm focus:border-slate-900 focus:ring-slate-900/10 resize-none text-sm p-3 transition-colors" 
                                             rows="3"

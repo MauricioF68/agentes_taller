@@ -3,6 +3,7 @@ import NotionInput from '@/Components/NotionInput';
 import NotionButton from '@/Components/NotionButton';
 import { Skull, Frown, CircleDot, AlertCircle, Smile, CheckCircle, BarChart3, X, Users, Folder, Check, Clock, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import VoiceToTextButton from '@/Components/VoiceToTextButton';
 
 const COLOR_OPTIONS = [
     { value: 'calavera', icon: Skull, label: 'Crítico', colorClass: 'bg-slate-800 text-white border-slate-900 hover:bg-slate-900', iconColor: 'text-slate-100' },
@@ -182,7 +183,12 @@ export default function EvaluationModal({
                                     </div>
 
                                     <div>
-                                        <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Veredicto de la Auditoría / Feedback</label>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Veredicto de la Auditoría / Feedback</label>
+                                            <VoiceToTextButton 
+                                                onTranscription={(text) => setEvalData('feedback', (evalData.feedback ? evalData.feedback + ' ' : '') + text)} 
+                                            />
+                                        </div>
                                         <textarea 
                                             className="w-full bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl shadow-sm h-24 resize-none p-3.5 text-sm font-medium transition-colors" 
                                             value={evalData.feedback} 

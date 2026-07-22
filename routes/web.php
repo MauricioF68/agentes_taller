@@ -10,6 +10,7 @@ use App\Http\Controllers\AgileController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\MeetingMinuteController;
 use App\Http\Controllers\BacklogCommentController;
+use App\Http\Controllers\VoiceTranscriptionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -31,6 +32,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
+    // --- RUTA GENÉRICA DE VOZ A TEXTO ---
+    Route::post('/voice-to-text', [VoiceTranscriptionController::class, 'transcribe'])->name('voice.transcribe');
 
     // --- RUTAS DE NUESTRO DOMINIO: GRUPOS ---
     Route::get('/groups', [GroupController::class, 'index'])->name('groups.index'); 

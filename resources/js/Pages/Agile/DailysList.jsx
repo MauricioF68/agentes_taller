@@ -3,6 +3,7 @@ import { Head, useForm } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
 import { Search, X, History, CalendarPlus, Inbox, Calendar, User, Target, AlertTriangle, CheckSquare, ListTodo } from 'lucide-react';
+import VoiceToTextButton from '@/Components/VoiceToTextButton';
 
 // Componente interno para el UX de selección estilo Jira (Pills)
 const ItemSelector = ({ activeItems, selectedIds, onChange }) => {
@@ -202,7 +203,10 @@ export default function DailysList({ auth, group, dailys, activeItems }) {
 
                     <form onSubmit={submitDaily} className="space-y-6">
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">¿Qué lograste ayer?</label>
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">¿Qué lograste ayer?</label>
+                                <VoiceToTextButton onTranscription={(text) => setData('achievements_text', (data.achievements_text ? data.achievements_text + ' ' : '') + text)} />
+                            </div>
                             <textarea className="block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm p-3 font-medium" rows="2" placeholder="Desarrollé el componente X..."
                                 value={data.achievements_text} onChange={e => setData('achievements_text', e.target.value)} required />
                             
@@ -214,7 +218,10 @@ export default function DailysList({ auth, group, dailys, activeItems }) {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">¿Qué vas a lograr hoy?</label>
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">¿Qué vas a lograr hoy?</label>
+                                <VoiceToTextButton onTranscription={(text) => setData('plans_text', (data.plans_text ? data.plans_text + ' ' : '') + text)} />
+                            </div>
                             <textarea className="block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm p-3 font-medium" rows="2" placeholder="Revisaré las pruebas del módulo Y..."
                                 value={data.plans_text} onChange={e => setData('plans_text', e.target.value)} required />
                             
@@ -226,7 +233,10 @@ export default function DailysList({ auth, group, dailys, activeItems }) {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Impedimentos (Opcional)</label>
+                            <div className="flex justify-between items-center mb-2">
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Impedimentos (Opcional)</label>
+                                <VoiceToTextButton onTranscription={(text) => setData('impediments', (data.impediments ? data.impediments + ' ' : '') + text)} />
+                            </div>
                             <textarea className="block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm p-3 font-medium" rows="2" placeholder="Bloqueos, dependencias o dudas..."
                                 value={data.impediments} onChange={e => setData('impediments', e.target.value)} />
                         </div>

@@ -6,6 +6,7 @@ import TableView from '@/Components/Kanban/TableView';
 import BoardView from '@/Components/Kanban/BoardView';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TableProperties, LayoutGrid, Plus, X, ListTodo, CalendarClock, Flag, Trash2 } from 'lucide-react';
+import VoiceToTextButton from '@/Components/VoiceToTextButton';
 
 export default function BacklogBoard({ auth, group, items, members, sprints }) {
     const [viewMode, setViewMode] = useState('table'); // 'table' or 'board'
@@ -224,13 +225,19 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Descripción</label>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Descripción</label>
+                                <VoiceToTextButton onTranscription={(text) => setEditData('description', (editData.description ? editData.description + ' ' : '') + text)} />
+                            </div>
                             <textarea className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm" rows="3"
                                 value={editData.description} onChange={e => setEditData('description', e.target.value)} />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Criterios de Aceptación</label>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Criterios de Aceptación</label>
+                                <VoiceToTextButton onTranscription={(text) => setEditData('acceptance_criteria', (editData.acceptance_criteria ? editData.acceptance_criteria + ' ' : '') + text)} />
+                            </div>
                             <textarea className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm" rows="3" placeholder="Ej. Dado que [condición], cuando [acción], entonces [resultado]"
                                 value={editData.acceptance_criteria} onChange={e => setEditData('acceptance_criteria', e.target.value)} />
                         </div>
@@ -369,13 +376,19 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                                 value={data.title} onChange={e => setData('title', e.target.value)} required />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Descripción (Opcional)</label>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Descripción (Opcional)</label>
+                                <VoiceToTextButton onTranscription={(text) => setData('description', (data.description ? data.description + ' ' : '') + text)} />
+                            </div>
                             <textarea className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm" rows="3"
                                 value={data.description} onChange={e => setData('description', e.target.value)} />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Criterios de Aceptación</label>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Criterios de Aceptación</label>
+                                <VoiceToTextButton onTranscription={(text) => setData('acceptance_criteria', (data.acceptance_criteria ? data.acceptance_criteria + ' ' : '') + text)} />
+                            </div>
                             <textarea className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm" rows="3" placeholder="Ej. Dado que [condición], cuando [acción], entonces [resultado]"
                                 value={data.acceptance_criteria} onChange={e => setData('acceptance_criteria', e.target.value)} />
                         </div>

@@ -3,6 +3,7 @@ import { Head, useForm, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
 import { MessageSquare, Inbox, Edit, X, PenTool, AlertCircle } from 'lucide-react';
+import VoiceToTextButton from '@/Components/VoiceToTextButton';
 
 export default function StudentCommentsIndex({ auth, group, itemsWithComments, members, sprints }) {
     const [selectedItem, setSelectedItem] = useState(null);
@@ -156,13 +157,19 @@ export default function StudentCommentsIndex({ auth, group, itemsWithComments, m
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Descripción</label>
+                                <div className="flex justify-between items-center mb-1">
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Descripción</label>
+                                    <VoiceToTextButton onTranscription={(text) => setEditData('description', (editData.description ? editData.description + ' ' : '') + text)} />
+                                </div>
                                 <textarea className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm" rows="4"
                                     value={editData.description} onChange={e => setEditData('description', e.target.value)} />
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Criterios de Aceptación</label>
+                                <div className="flex justify-between items-center mb-1">
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Criterios de Aceptación</label>
+                                    <VoiceToTextButton onTranscription={(text) => setEditData('acceptance_criteria', (editData.acceptance_criteria ? editData.acceptance_criteria + ' ' : '') + text)} />
+                                </div>
                                 <textarea className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm" rows="3"
                                     value={editData.acceptance_criteria} onChange={e => setEditData('acceptance_criteria', e.target.value)} />
                             </div>
