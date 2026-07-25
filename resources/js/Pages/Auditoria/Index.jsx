@@ -5,6 +5,7 @@ import NotionCard from '@/Components/NotionCard';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import MetricsCard from '@/Components/MetricsCard';
+import VoiceToTextButton from '@/Components/VoiceToTextButton';
 
 export default function AuditoriaIndex({ auth, groups, categories }) {
     const [activeGroup, setActiveGroup] = useState(null);
@@ -12,8 +13,6 @@ export default function AuditoriaIndex({ auth, groups, categories }) {
     const [inputText, setInputText] = useState('');
     const [isThinking, setIsThinking] = useState(false);
     
-    const [isListening, setIsListening] = useState(false);
-    const recognitionRef = useRef(null);
     const chatEndRef = useRef(null);
 
     // Si viene un grupo preseleccionado por parámetro URL (ej. desde Dashboard)
@@ -30,43 +29,6 @@ export default function AuditoriaIndex({ auth, groups, categories }) {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isThinking]);
 
-    useEffect(() => {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = true;
-            recognition.lang = 'es-ES';
-
-            recognition.onresult = (event) => {
-                const transcript = Array.from(event.results)
-                    .map(result => result[0].transcript)
-                    .join('');
-                setInputText(transcript);
-            };
-
-            recognition.onerror = (event) => {
-                console.error("Error en dictado:", event.error);
-                setIsListening(false);
-            };
-
-            recognition.onend = () => {
-                setIsListening(false);
-            };
-
-            recognitionRef.current = recognition;
-        }
-    }, []);
-
-    const toggleDictation = () => {
-        if (isListening) {
-            recognitionRef.current?.stop();
-        } else {
-            setInputText('');
-            recognitionRef.current?.start();
-            setIsListening(true);
-        }
-    };
 
     const handleSendMessage = async (e) => {
         if (e) e.preventDefault();
@@ -74,7 +36,6 @@ export default function AuditoriaIndex({ auth, groups, categories }) {
 
         const userMsg = inputText.trim();
         setInputText('');
-        if (isListening) recognitionRef.current?.stop();
 
         const newHistory = [...messages, { role: 'user', content: userMsg }];
         setMessages(newHistory);
@@ -212,22 +173,17 @@ export default function AuditoriaIndex({ auth, groups, categories }) {
 
                             <div className="p-4 bg-white border-t border-gray-200">
                                 <form onSubmit={handleSendMessage} className="flex items-center gap-3 relative">
-                                    <button
-                                        type="button"
-                                        onClick={toggleDictation}
-                                        className={`p-3.5 rounded-full transition-colors flex-shrink-0 ${isListening ? 'bg-red-100 text-red-500 animate-pulse shadow-inner' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-                                        title="Dictar por voz"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-                                        </svg>
-                                    </button>
+                                    <VoiceToTextButton 
+                                        onTranscription={(text) => setInputText(prev => prev + (prev ? ' ' : '') + text)} 
+                                        className="w-12 h-12 flex-shrink-0"
+                                        iconClassName="w-5 h-5"
+                                    />
                                     
                                     <input
                                         type="text"
                                         value={inputText}
                                         onChange={(e) => setInputText(e.target.value)}
-                                        placeholder={isListening ? "Te estoy escuchando..." : `Consulta el estado de ${activeGroup.name}...`}
+                                        placeholder={`Consulta el estado de ${activeGroup.name}...`}
                                         className="flex-1 bg-gray-100/50 border-0 focus:ring-2 focus:ring-indigo-500 rounded-full px-6 py-4 text-[15px] shadow-inner transition-all outline-none"
                                         disabled={isThinking}
                                     />
