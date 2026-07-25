@@ -28,4 +28,28 @@ class RegistrationTest extends TestCase
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
     }
+
+    public function test_registration_requires_mandatory_fields(): void
+    {
+        $response = $this->post('/register', [
+            'name' => '',
+            'email' => '',
+            'password' => '',
+            'password_confirmation' => '',
+        ]);
+
+        $response->assertSessionHasErrors(['name', 'email', 'password']);
+    }
+
+    public function test_registration_requires_password_confirmation_match(): void
+    {
+        $response = $this->post('/register', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password456',
+        ]);
+
+        $response->assertSessionHasErrors(['password']);
+    }
 }

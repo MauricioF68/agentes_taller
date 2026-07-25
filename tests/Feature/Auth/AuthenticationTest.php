@@ -51,4 +51,24 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
         $response->assertRedirect('/');
     }
+
+    public function test_login_requires_email_and_password(): void
+    {
+        $response = $this->post('/login', [
+            'email' => '',
+            'password' => '',
+        ]);
+
+        $response->assertSessionHasErrors(['email', 'password']);
+    }
+
+    public function test_login_requires_valid_email_format(): void
+    {
+        $response = $this->post('/login', [
+            'email' => 'invalid-email-format',
+            'password' => 'password',
+        ]);
+
+        $response->assertSessionHasErrors(['email']);
+    }
 }

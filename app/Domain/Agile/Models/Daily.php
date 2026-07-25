@@ -3,11 +3,14 @@
 namespace App\Domain\Agile\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Domain\Groups\Models\Group;
 use App\Models\User;
 
 class Daily extends Model
 {
+    use HasFactory;
+
     protected $table = 'dailys';
 
     protected $fillable = [

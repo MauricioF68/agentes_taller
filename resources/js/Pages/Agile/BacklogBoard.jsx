@@ -161,6 +161,7 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                         
                         <div className="flex space-x-3">
                             <button 
+                                id="btn-nueva-tarea"
                                 onClick={() => { setIsAdding(!isAdding); setIsAddingSprint(false); }}
                                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-xl shadow-sm transition-all active:scale-95 flex items-center gap-2 text-sm"
                             >
@@ -171,6 +172,7 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                                 )}
                             </button>
                             <button 
+                                id="btn-nuevo-sprint"
                                 onClick={() => { setIsAddingSprint(!isAddingSprint); setIsAdding(false); }}
                                 className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold py-2 px-4 rounded-xl shadow-sm transition-all active:scale-95 flex items-center gap-2 text-sm"
                             >
@@ -220,7 +222,7 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                     <form onSubmit={submitEditItem} className="space-y-5">
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Título</label>
-                            <input type="text" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm font-medium"
+                            <input type="text" name="title" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm font-medium"
                                 value={editData.title} onChange={e => setEditData('title', e.target.value)} required />
                         </div>
 
@@ -229,7 +231,7 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Descripción</label>
                                 <VoiceToTextButton onTranscription={(text) => setEditData('description', (editData.description ? editData.description + ' ' : '') + text)} />
                             </div>
-                            <textarea className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm" rows="3"
+                            <textarea name="description" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm" rows="3"
                                 value={editData.description} onChange={e => setEditData('description', e.target.value)} />
                         </div>
 
@@ -245,7 +247,7 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha de Vencimiento (Opcional)</label>
-                                <input type="date" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm"
+                                <input type="date" name="due_date" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm"
                                     value={editData.due_date} onChange={e => setEditData('due_date', e.target.value)} />
                             </div>
                         </div>
@@ -328,19 +330,19 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                     <form onSubmit={submitNewSprint} className="space-y-5">
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nombre del Sprint</label>
-                            <input type="text" placeholder="Ej. Sprint 1" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm font-medium"
+                            <input type="text" name="name" placeholder="Ej. Sprint 1" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm font-medium"
                                 value={sprintData.name} onChange={e => setSprintData('name', e.target.value)} required />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha Inicio</label>
-                                <input type="date" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm"
-                                    value={sprintData.start_date} onChange={e => setSprintData('start_date', e.target.value)} />
+                                <input type="date" name="start_date" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm"
+                                    value={sprintData.start_date} onChange={e => setSprintData('start_date', e.target.value)} required />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha Fin</label>
-                                <input type="date" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm"
-                                    value={sprintData.end_date} onChange={e => setSprintData('end_date', e.target.value)} />
+                                <input type="date" name="end_date" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm"
+                                    value={sprintData.end_date} onChange={e => setSprintData('end_date', e.target.value)} required />
                             </div>
                         </div>
 
@@ -372,7 +374,7 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                     <form onSubmit={submitNewItem} className="space-y-5">
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Título</label>
-                            <input type="text" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm font-medium"
+                            <input type="text" name="title" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm font-medium"
                                 value={data.title} onChange={e => setData('title', e.target.value)} required />
                         </div>
                         <div>
@@ -380,7 +382,7 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Descripción (Opcional)</label>
                                 <VoiceToTextButton onTranscription={(text) => setData('description', (data.description ? data.description + ' ' : '') + text)} />
                             </div>
-                            <textarea className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm" rows="3"
+                            <textarea name="description" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm" rows="3"
                                 value={data.description} onChange={e => setData('description', e.target.value)} />
                         </div>
 
@@ -389,14 +391,14 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Criterios de Aceptación</label>
                                 <VoiceToTextButton onTranscription={(text) => setData('acceptance_criteria', (data.acceptance_criteria ? data.acceptance_criteria + ' ' : '') + text)} />
                             </div>
-                            <textarea className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm" rows="3" placeholder="Ej. Dado que [condición], cuando [acción], entonces [resultado]"
+                            <textarea name="acceptance_criteria" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm" rows="3" placeholder="Ej. Dado que [condición], cuando [acción], entonces [resultado]"
                                 value={data.acceptance_criteria} onChange={e => setData('acceptance_criteria', e.target.value)} />
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha de Vencimiento (Opcional)</label>
-                                <input type="date" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm"
+                                <input type="date" name="due_date" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm"
                                     value={data.due_date} onChange={e => setData('due_date', e.target.value)} />
                             </div>
                         </div>
@@ -404,7 +406,7 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tipo</label>
-                                <select className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm"
+                                <select name="type" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm"
                                     value={data.type} onChange={e => setData('type', e.target.value)}>
                                     <option value="user_story">User Story</option>
                                     <option value="spike">Spike</option>
@@ -415,7 +417,7 @@ export default function BacklogBoard({ auth, group, items, members, sprints }) {
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Peso (Story Pts)</label>
-                                <select className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm"
+                                <select name="story_points" className="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-2.5 px-3 text-sm"
                                     value={data.story_points} onChange={e => setData('story_points', e.target.value)}>
                                     <option value="1">1 pt</option>
                                     <option value="2">2 pts</option>

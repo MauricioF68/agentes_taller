@@ -22,6 +22,7 @@ export default function JoinGroupForm({ availableGroups }) {
             <form onSubmit={submitJoin} className="flex gap-4 items-start max-w-xl">
                 <div className="flex-1">
                     <select
+                        name="group_id"
                         className="bg-notion-bg border-notion-border text-notion-text focus:border-notion-blue focus:ring-1 focus:ring-notion-blue rounded-md shadow-sm w-full"
                         value={data.group_id}
                         onChange={(e) => setData('group_id', e.target.value)}

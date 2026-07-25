@@ -344,6 +344,7 @@ export default function TeacherBacklogBoard({ auth, group, items, sprints, membe
                                             <VoiceToTextButton onTranscription={(text) => setCommentData('content', (commentData.content ? commentData.content + ' ' : '') + text)} />
                                         </div>
                                         <textarea 
+                                            id="comentario-textarea"
                                             className="w-full rounded-xl border-slate-200 bg-slate-50 shadow-sm focus:border-slate-900 focus:ring-slate-900/10 resize-none text-sm p-3 transition-colors" 
                                             rows="3"
                                             placeholder="Escribe aquí las observaciones para el alumno..."

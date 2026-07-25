@@ -190,6 +190,7 @@ export default function EvaluationModal({
                                             />
                                         </div>
                                         <textarea 
+                                            name="feedback"
                                             className="w-full bg-slate-50 border border-slate-200 text-slate-800 focus:bg-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl shadow-sm h-24 resize-none p-3.5 text-sm font-medium transition-colors" 
                                             value={evalData.feedback} 
                                             onChange={(e) => setEvalData('feedback', e.target.value)} 

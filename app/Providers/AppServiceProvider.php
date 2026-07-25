@@ -24,5 +24,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
         BacklogItem::observe(BacklogItemObserver::class);
+
+        \Illuminate\Database\Eloquent\Factories\Factory::guessFactoryNamesUsing(function (string $modelName) {
+            return 'Database\\Factories\\' . class_basename($modelName) . 'Factory';
+        });
     }
 }

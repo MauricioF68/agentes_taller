@@ -75,7 +75,10 @@ export default function TeacherGroups({ auth, groups, cycles, categories }) {
     });
 
     const openEvaluationModal = (group = null) => {
-        if (group) setActiveGroup(group);
+        if (group) {
+            setActiveGroup(group);
+            setEvalData('group_id', group.id);
+        }
         setIsModalOpen(true);
     };
 
@@ -326,6 +329,7 @@ export default function TeacherGroups({ auth, groups, cycles, categories }) {
                                                                 <td className="p-4 whitespace-nowrap text-center">
                                                                     <div className="flex items-center justify-center gap-2 opacity-0 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity">
                                                                         <button 
+                                                                            id="btn-evaluar"
                                                                             onClick={() => openEvaluationModal(group)}
                                                                             className="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1"
                                                                         >
@@ -380,6 +384,7 @@ export default function TeacherGroups({ auth, groups, cycles, categories }) {
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-1">Ciclo Académico</label>
                                         <select
+                                            name="academic_cycle_id"
                                             value={groupData.academic_cycle_id}
                                             onChange={(e) => setGroupData('academic_cycle_id', e.target.value)}
                                             className="w-full bg-gray-50 border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl px-4 py-2.5 transition-all"
@@ -397,7 +402,7 @@ export default function TeacherGroups({ auth, groups, cycles, categories }) {
                                         <div className="flex-1">
                                             <label className="block text-sm font-bold text-gray-700 mb-1">Aula</label>
                                             <input
-                                                type="text" placeholder="Ej. G402"
+                                                type="text" placeholder="Ej. G402" name="classroom"
                                                 value={groupData.classroom} onChange={(e) => setGroupData('classroom', e.target.value)}
                                                 className="w-full bg-gray-50 border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl px-4 py-2.5 transition-all" required
                                             />
@@ -405,7 +410,7 @@ export default function TeacherGroups({ auth, groups, cycles, categories }) {
                                         <div className="flex-1">
                                             <label className="block text-sm font-bold text-gray-700 mb-1">Turno</label>
                                             <select
-                                                value={groupData.shift} onChange={(e) => setGroupData('shift', e.target.value)}
+                                                name="shift" value={groupData.shift} onChange={(e) => setGroupData('shift', e.target.value)}
                                                 className="w-full bg-gray-50 border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl px-4 py-2.5 transition-all" required
                                             >
                                                 <option value="Día">Día</option>
@@ -418,7 +423,7 @@ export default function TeacherGroups({ auth, groups, cycles, categories }) {
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-1">Nombre del Grupo (Opcional)</label>
                                         <input
-                                            type="text" placeholder="Si se deja vacío, se autogenera"
+                                            type="text" placeholder="Si se deja vacío, se autogenera" name="name"
                                             value={groupData.name} onChange={(e) => setGroupData('name', e.target.value)}
                                             className="w-full bg-gray-50 border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl px-4 py-2.5 transition-all"
                                         />
@@ -427,7 +432,7 @@ export default function TeacherGroups({ auth, groups, cycles, categories }) {
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-1">Nombre del Proyecto (Opcional)</label>
                                         <input
-                                            type="text" placeholder="Lo pueden llenar los alumnos..."
+                                            type="text" placeholder="Lo pueden llenar los alumnos..." name="project_name"
                                             value={groupData.project_name} onChange={(e) => setGroupData('project_name', e.target.value)}
                                             className="w-full bg-gray-50 border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl px-4 py-2.5 transition-all"
                                         />
@@ -466,7 +471,7 @@ export default function TeacherGroups({ auth, groups, cycles, categories }) {
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-1">Año Académico</label>
                                         <input
-                                            type="number" min="2020" max="2100"
+                                            type="number" min="2020" max="2100" name="year"
                                             value={cycleData.year} onChange={(e) => setCycleData('year', e.target.value)}
                                             className="w-full bg-gray-50 border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl px-4 py-2.5 transition-all" required
                                         />
@@ -474,7 +479,7 @@ export default function TeacherGroups({ auth, groups, cycles, categories }) {
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-1">Periodo</label>
                                         <select
-                                            value={cycleData.period} onChange={(e) => setCycleData('period', e.target.value)}
+                                            name="period" value={cycleData.period} onChange={(e) => setCycleData('period', e.target.value)}
                                             className="w-full bg-gray-50 border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl px-4 py-2.5 transition-all" required
                                         >
                                             <option value="1">1 (Marzo - Julio)</option>
@@ -503,7 +508,10 @@ export default function TeacherGroups({ auth, groups, cycles, categories }) {
                     groups={groups}
                     categories={categories || []}
                     activeGroup={activeGroup}
-                    onGroupSelected={setActiveGroup}
+                    onGroupSelected={(group) => {
+                        setActiveGroup(group);
+                        setEvalData('group_id', group.id);
+                    }}
                     evalData={evalData}
                     setEvalData={setEvalData}
                     submitEvaluation={(e) => {
