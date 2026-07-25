@@ -4,6 +4,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
+import { toast } from 'react-toastify';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
@@ -21,7 +22,10 @@ export default function UpdateProfileInformation({
     const submit = (e) => {
         e.preventDefault();
 
-        patch(route('profile.update'));
+        patch(route('profile.update'), {
+            onSuccess: () => toast.success('Perfil actualizado correctamente.'),
+            onError: () => toast.error('Error al actualizar el perfil. Revisa que no uses caracteres especiales.'),
+        });
     };
 
     return (
