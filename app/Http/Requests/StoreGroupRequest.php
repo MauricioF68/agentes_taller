@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\NoSpecialChars;
 
 class StoreGroupRequest extends FormRequest
 {
@@ -14,11 +15,11 @@ class StoreGroupRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'nullable|string|max:255',
-            'project_name' => 'nullable|string|max:255',
+            'name' => ['nullable', 'string', 'max:255', new NoSpecialChars],
+            'project_name' => ['nullable', 'string', 'max:255', new NoSpecialChars],
             'academic_cycle_id' => 'required|exists:academic_cycles,id',
-            'classroom' => 'required|string|max:255',
-            'shift' => 'required|string|max:255',
+            'classroom' => ['required', 'string', 'max:255', new NoSpecialChars],
+            'shift' => ['required', 'string', 'max:255', new NoSpecialChars],
         ];
     }
 }

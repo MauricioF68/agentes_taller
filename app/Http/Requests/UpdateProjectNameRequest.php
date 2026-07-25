@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\NoSpecialChars;
 
 class UpdateProjectNameRequest extends FormRequest
 {
@@ -14,7 +15,7 @@ class UpdateProjectNameRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'project_name' => 'required|string|max:255',
+            'project_name' => ['required', 'string', 'max:255', new NoSpecialChars],
         ];
     }
 }

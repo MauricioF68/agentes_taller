@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\NoSpecialChars;
 
 class StoreBacklogItemRequest extends FormRequest
 {
@@ -14,9 +15,9 @@ class StoreBacklogItemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'acceptance_criteria' => 'nullable|string',
+            'title' => ['required', 'string', 'max:255', new NoSpecialChars],
+            'description' => ['nullable', 'string', new NoSpecialChars],
+            'acceptance_criteria' => ['nullable', 'string', new NoSpecialChars],
             'type' => 'nullable|string',
             'status' => 'nullable|string',
             'story_points' => 'nullable|integer|min:1|max:5',
