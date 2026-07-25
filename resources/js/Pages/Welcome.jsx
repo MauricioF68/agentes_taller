@@ -20,7 +20,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                             <Activity className="w-6 h-6 text-white" />
                         </div>
                         <span className="text-xl font-semibold tracking-tight text-slate-900">
-                            Taller Integrador I
+                            Taller Integrador uno
                         </span>
                     </motion.div>
                     
